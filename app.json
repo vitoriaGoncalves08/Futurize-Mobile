@@ -6,11 +6,6 @@
     "orientation": "portrait",
     "icon": "./assets/img/logoProjeto.png",
     "userInterfaceStyle": "light",
-    // "splash": {
-    //   "image": "./assets/img/logoProjeto.png",
-    //   "resizeMode": "contain",
-    //   "backgroundColor": "#118E96"
-    // },
     "assetBundlePatterns": [
       "**/*"
     ],
@@ -20,7 +15,6 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/img/logoProjeto.png"
-        // "backgroundColor": "#118E96"
       }
     },
     "web": {
