@@ -1,13 +1,40 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import CheckBox from 'expo-checkbox';
+import useAuth from "./configs/useAuth";
+import AsyncStorage from '@react-native-async-storage/async-storage'; // Adicionado para substituir localStorage
 
 const Home = () => {
   const [isChecked, setIsChecked] = useState(false);
   const [isChecked2, setIsChecked2] = useState(false);
   const [isChecked3, setIsChecked3] = useState(false);
   const navigation = useNavigation();
+
+  const { getLoginUser } = useAuth();
+  const usuarioLogado = getLoginUser();
+  const usuarioLogadoId = usuarioLogado?.id;
+  const usuarioLogadoName = usuarioLogado?.sub;
+  const [allocatedUsers, setAllocatedUsers] = useState([]);
+
+  const [token, setToken] = useState('');
+
+  // Use Effect to retrieve the token from AsyncStorage
+  useEffect(() => {
+    const fetchToken = async () => {
+      try {
+        const storedToken = await AsyncStorage.getItem('@user');
+        if (storedToken) {
+          const parsedToken = JSON.parse(storedToken);
+          setToken(parsedToken.tokenJWT);
+        }
+      } catch (error) {
+        console.error('Erro ao recuperar token:', error);
+      }
+    };
+
+    fetchToken();
+  }, []);
 
   const handleCheck = () => {
     setIsChecked(!isChecked);
@@ -32,7 +59,7 @@ const Home = () => {
 
       <View style={styles.dashboard}>
         <Text>
-          CARDS DE DASHBOARD TAREFAS E CALENDARIO
+          {token}
         </Text>
       </View>
 
