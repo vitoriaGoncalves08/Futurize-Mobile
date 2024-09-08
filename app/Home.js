@@ -10,7 +10,7 @@ const Atividades = () => {
   useEffect(() => {
     const fetchAtividades = async () => {
       try {
-        const response = await api.get('/Atividade/1'); // Substitua o ID conforme necessário
+        const response = await api.get('/Atividade/8'); // Substitua o ID conforme necessário
         setAtividades(response.data); // Salvando dados no estado
       } catch (error) {
         console.error("Erro ao buscar atividades:", error.message); // Log do erro
@@ -28,6 +28,7 @@ const Atividades = () => {
             <Text>{atividade.titulo}</Text>
             <Text>{atividade.estado}</Text>
             <Text>{atividade.tempo_execucao}</Text>
+            <Text>{atividade.projeto.titulo}</Text>
           </View>
         ))
       ) : (
