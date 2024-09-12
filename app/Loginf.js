@@ -1,62 +1,56 @@
-// Loginf.js
-import React, { useState, useEffect } from 'react';
-import { useNavigation, useRoute } from '@react-navigation/native';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, Image } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import useAuth from '../configs/useAuth'; // Certifique-se de que o caminho está correto
 
 const Loginf = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const { signIn } = useAuth(); // Obtém o método de autenticação do contexto
   const navigation = useNavigation();
-  const route = useRoute();
 
-  useEffect(() => {
-    if (route.params) {
-      const { email, password } = route.params;
-      setEmail(email || '');
-      setPassword(password || '');
+  const handleLogin = async () => {
+    if (!email || !password) {
+      Alert.alert('Erro', 'Preencha todos os campos');
+      return;
     }
-  }, [route.params]);
 
-  const handleLogin = () => {
-    navigation.navigate("Home")
-    console.log('Logging in with email:', email, 'and password:', password);
+    try {
+      // Chame o método signIn do contexto que faz a requisição para a API
+      await signIn(email, password);
+      navigation.navigate('Home'); // Após o login com sucesso, navega para a tela Home
+    } catch (error) {
+      Alert.alert('Erro', 'Credenciais inválidas. Tente novamente.');
+    }
   };
 
   return (
     <View style={styles.container}>
-      <Image style={styles.logo} source={require('../assets/img/logoProjeto.png')} />
       <Text style={styles.loginTitle}>Login</Text>
-      <Text style={styles.description}>
-        Vamos começar preenchendo o formulário abaixo.
-      </Text>
       <TextInput
         style={styles.input}
         placeholder="Email"
         value={email}
         onChangeText={setEmail}
         keyboardType="email-address"
+        autoCapitalize="none"
       />
       <TextInput
         style={styles.input}
         placeholder="Senha"
         value={password}
         onChangeText={setPassword}
-        secureTextEntry={true}
+        secureTextEntry
       />
-      <TouchableOpacity style={styles.button} onPress={() => navigation.navigate("Home")}>
+      <TouchableOpacity style={styles.button} onPress={handleLogin}>
         <Text style={styles.buttonText}>Login</Text>
       </TouchableOpacity>
       <View style={styles.accountContainer}>
         <Text style={styles.accountText}>Não tem uma conta?</Text>
-        <TouchableOpacity onPress={() => navigation.navigate("CriarConta")}>
+        <TouchableOpacity onPress={() => navigation.navigate('CriarConta')}>
           <Text style={styles.accountLink}>Registre-se</Text>
         </TouchableOpacity>
       </View>
-      <TouchableOpacity onPress={() => navigation.navigate("RecuperarSenha")}>
-        <Text style={styles.forgotPassword}>
-          Esqueceu sua senha? Redefinir agora
-        </Text>
-      </TouchableOpacity>
     </View>
   );
 };
@@ -68,32 +62,12 @@ const styles = StyleSheet.create({
     marginTop: 20,
     backgroundColor: '#f5f5f5',
   },
-  logo: {
-      width: 250,
-      height:50,
-      alignSelf: 'center',
-      marginTop: 15,
-      marginBottom: 10
-  },
-  title: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    marginBottom: 20,
-    textAlign: 'center',
-    color: '#333',
-  },
   loginTitle: {
     fontSize: 24,
     fontWeight: 'bold',
     marginBottom: 10,
     textAlign: 'center',
     color: '#333',
-  },
-  description: {
-    fontSize: 16,
-    marginBottom: 20,
-    textAlign: 'center',
-    color: '#555',
   },
   input: {
     borderWidth: 1,
@@ -127,12 +101,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#007bff',
     marginLeft: 5,
-  },
-  forgotPassword: {
-    fontSize: 16,
-    color: '#007bff',
-    textAlign: 'center',
-    marginTop: 10,
   },
 });
 
