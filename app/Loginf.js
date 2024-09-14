@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import useAuth from '../configs/useAuth'; // Certifique-se de que o caminho está correto
+import useAuth from './configs/useAuth'; // Certifique-se de que o caminho está correto
 
 const Loginf = () => {
   const [email, setEmail] = useState('');
@@ -26,31 +26,39 @@ const Loginf = () => {
 
   return (
     <View style={styles.container}>
+      <Image style={styles.logo} source={require('../assets/img/logoProjeto.png')} />
       <Text style={styles.loginTitle}>Login</Text>
+      <Text style={styles.description}>
+        Vamos começar preenchendo o formulário abaixo.
+      </Text>
       <TextInput
         style={styles.input}
         placeholder="Email"
         value={email}
         onChangeText={setEmail}
         keyboardType="email-address"
-        autoCapitalize="none"
       />
       <TextInput
         style={styles.input}
         placeholder="Senha"
         value={password}
         onChangeText={setPassword}
-        secureTextEntry
+        secureTextEntry={true}
       />
       <TouchableOpacity style={styles.button} onPress={handleLogin}>
         <Text style={styles.buttonText}>Login</Text>
       </TouchableOpacity>
       <View style={styles.accountContainer}>
         <Text style={styles.accountText}>Não tem uma conta?</Text>
-        <TouchableOpacity onPress={() => navigation.navigate('CriarConta')}>
+        <TouchableOpacity onPress={() => navigation.navigate("CriarConta")}>
           <Text style={styles.accountLink}>Registre-se</Text>
         </TouchableOpacity>
       </View>
+      <TouchableOpacity onPress={() => navigation.navigate("RecuperarSenha")}>
+        <Text style={styles.forgotPassword}>
+          Esqueceu sua senha? Redefinir agora
+        </Text>
+      </TouchableOpacity>
     </View>
   );
 };
@@ -61,6 +69,12 @@ const styles = StyleSheet.create({
     padding: 20,
     marginTop: 20,
     backgroundColor: '#f5f5f5',
+  },
+  logo: {
+    width: 100,
+    height: 100,
+    alignSelf: 'center',
+    marginBottom: 20,
   },
   loginTitle: {
     fontSize: 24,
@@ -101,6 +115,11 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#007bff',
     marginLeft: 5,
+  },
+  forgotPassword: {
+    color: '#007bff',
+    textAlign: 'center',
+    marginTop: 15,
   },
 });
 
