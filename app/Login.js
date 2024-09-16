@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { useAuth } from './configs/AuthContext'; // Certifique-se de que o caminho está correto
 
-const Loginf = () => {
+const Login = () => {
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
   const { signIn } = useAuth(); // Certifique-se de que `useAuth` está retornando corretamente o contexto
@@ -58,6 +58,12 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     textAlign: 'center',
   },
+  description: {
+    fontSize: 16,
+    marginBottom: 20,
+    textAlign: 'center',
+    color: '#555',
+  },
   input: {
     borderWidth: 1,
     borderColor: '#ddd',
@@ -77,5 +83,4 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
 });
-
-export default Loginf;
+export default Login;
