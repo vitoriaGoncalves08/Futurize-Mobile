@@ -1,65 +1,23 @@
 import React from 'react';
-import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import { NavigationContainer } from "@react-navigation/native";
-import Inicial from './app/Inicial';
-import Splash from './app/Splash';
-import Loginf from './app/Loginf';
-import RecuperarSenha from './app/RecuperarSenha';
-import Home from './app/Home';
-import Dashboard from './app/Dashboard';
-import CriarConta from './app/CriarConta';
-import PerfilSettings from './app/PerfilSettings';
+import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack'; // Importe do pacote correto
+import { AuthProvider } from './app/configs/AuthContext'; // Certifique-se de que o caminho está correto
+import Loginf from './app/Loginf'; // Certifique-se de que o caminho está correto
+import Home from './app/Home'; // Sua tela principal após login
 
-const Stack = createNativeStackNavigator();
+const Stack = createNativeStackNavigator(); // Use createNativeStackNavigator
 
-export default function App() {
+const App = () => {
   return (
     <NavigationContainer>
-      <Stack.Navigator>
-        <Stack.Screen
-          name="Splash"
-          component={Splash}
-          options={{ headerShown: false }}
-        />
-         <Stack.Screen
-          name="CriarConta"
-          component={CriarConta}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="Loginf"
-          component={Loginf}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="RecuperarSenha"
-          component={RecuperarSenha}
-          options={{ headerShown: false }}
-        />
-         <Stack.Screen
-          name="PerfilSettings"
-          component={PerfilSettings}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="Inicial"
-          component={Inicial}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="Home"
-          component={Home}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="Dashboard"
-          component={Dashboard}
-          options={{ headerShown: false }}
-        />
-
-
-     
-      </Stack.Navigator>
+      <AuthProvider>
+        <Stack.Navigator>
+          <Stack.Screen name="Loginf" component={Loginf} />
+          <Stack.Screen name="Home" component={Home} />
+        </Stack.Navigator>
+      </AuthProvider>
     </NavigationContainer>
   );
-}
+};
+
+export default App;
