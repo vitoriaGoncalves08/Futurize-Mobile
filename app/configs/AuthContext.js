@@ -26,7 +26,7 @@ export const AuthProvider = ({ children }) => {
           navigation.navigate('Loginf');
         }
       } catch (error) {
-        console.error('Erro ao obter o token do usuário:', error);
+        
       }
     };
     getUserToken();
@@ -48,11 +48,11 @@ export const AuthProvider = ({ children }) => {
       await AsyncStorage.setItem('@user', JSON.stringify(response.data));
 
       setUser(response.data); // Define o usuário no estado
+      Alert.alert('Sucesso', 'Login realizado com sucesso!');
       navigation.navigate('Home'); // Redireciona para a Home após login
     } catch (error) {
       // Log detalhado para diagnosticar o problema
       console.error('Erro no login:', error.response?.data || error.message);
-      Alert.alert('Erro', 'Falha no login. Verifique suas credenciais.');
     }
   };
 

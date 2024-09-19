@@ -15,7 +15,6 @@ const Loginf = () => {
 
     try {
       await signIn(email, senha); // Faz o login
-      Alert.alert('Sucesso', 'Login realizado com sucesso!');
     } catch (error) {
       Alert.alert('Erro', 'Falha ao realizar login. Verifique suas credenciais.');
       console.log('Erro no login:', error); // Logar o erro para ajudar no debug
