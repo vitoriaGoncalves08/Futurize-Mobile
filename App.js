@@ -1,13 +1,9 @@
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
-import { createNativeStackNavigator } from '@react-navigation/native-stack'; // Importe do pacote correto
 import { AuthProvider } from './app/configs/AuthContext'; // Certifique-se de que o caminho está correto
-import Loginf from './app/Loginf'; // Certifique-se de que o caminho está correto
-import Home from './app/Home'; // Sua tela principal após login
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import { NavigationContainer } from "@react-navigation/native";
 import Splash from './app/Splash';
-import Loginf from './app/Login';
+import Login from './app/Login';
 import RecuperarSenha from './app/RecuperarSenha';
 import Home from './app/Home';
 import Dashboard from './app/Dashboard';
@@ -22,7 +18,7 @@ const App = () => {
     <NavigationContainer>
       <AuthProvider>
         <Stack.Navigator>
-          <Stack.Screen name="Login" component={Loginf} />
+          <Stack.Screen name="Login" component={Login} />
           <Stack.Screen name="Home" component={Home} />
           <Stack.Screen name="Dashboard" component={Dashboard} />
           <Stack.Screen name="Dashboard_User" component={Dashboard_User} />

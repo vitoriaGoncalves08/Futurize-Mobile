@@ -23,7 +23,7 @@ export const AuthProvider = ({ children }) => {
         if (userToken) {
           setUser(JSON.parse(userToken));
         } else {
-          navigation.navigate('Loginf');
+          navigation.navigate('Login');
         }
       } catch (error) {
         
@@ -61,7 +61,7 @@ export const AuthProvider = ({ children }) => {
       setUser(null);
       await AsyncStorage.removeItem('@tokenJWT');
       await AsyncStorage.removeItem('@user');
-      navigation.navigate('Loginf');
+      navigation.navigate('Login');
     } catch (error) {
       console.error('Erro ao deslogar:', error);
     }
