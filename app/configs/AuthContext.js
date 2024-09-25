@@ -51,7 +51,6 @@ export const AuthProvider = ({ children }) => {
       Alert.alert('Sucesso', 'Login realizado com sucesso!');
       navigation.navigate('Home'); // Redireciona para a Home após login
     } catch (error) {
-      // Log detalhado para diagnosticar o problema
       console.error('Erro no login:', error.response?.data || error.message);
     }
   };
