@@ -1,9 +1,14 @@
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+//API LOCAL//
 const api = axios.create({
-  baseURL: 'https://deployfuturize-production.up.railway.app',
+  baseURL: 'http://localhost:8080',
 });
+//DEPLOY//
+// const api = axios.create({
+//   baseURL: 'https://deployfuturize-production.up.railway.app',
+// });
 
 api.interceptors.request.use(async (config) => {
   const token = await AsyncStorage.getItem('@tokenJWT');
