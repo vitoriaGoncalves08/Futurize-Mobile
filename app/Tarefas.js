@@ -1,129 +1,98 @@
-import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  Image,
-  ScrollView,
-} from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Modal, FlatList, Pressable } from 'react-native';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
 
-const TaskItem = ({ task }) => {
-  const getStatusStyle = () => {
-    switch (task.status) {
-      case 'Concluído':
-        return styles.completedTask;
-      case 'Em Progresso':
-        return styles.inProgressTask;
-      case 'Pendente':
-        return styles.pendingTask;
-      default:
-        return {};
-    }
+const Tarefa = () => {
+  const navigation = useNavigation();
+
+  // Estado para tarefas e projetos
+  const [tarefas, setTarefas] = useState([]);
+  const [projects, setProjects] = useState([]);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Função para buscar dados da API
+    const fetchData = async () => {
+      try {
+        const projetosResponse = await fetch('https://sua-api.com/projetos'); // Substitua pela sua URL
+        const tarefasResponse = await fetch('https://sua-api.com/tarefas'); // Substitua pela sua URL
+        const projetosData = await projetosResponse.json();
+        const tarefasData = await tarefasResponse.json();
+
+        setProjects(projetosData);
+        setTarefas(tarefasData);
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  const handleGoHome = () => {
+    navigation.navigate('Home'); // Navega para a tela "Home"
   };
 
-  return (
-    <View style={[styles.taskItem, getStatusStyle()]}>
-      <View style={styles.taskInfo}>
-        <Text style={styles.taskName}>{task.task}</Text>
-        <Image
-          //source={require('./user.png')} // Replace with your actual image
-          style={styles.avatar}
-        />
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <Text>Carregando...</Text>
       </View>
-      <Text style={styles.statusText}>{task.status}</Text>
-    </View>
-  );
-};
+    );
+  }
 
-const Tarefas = ({ navigation }) => {
-  const [selectedProject, setSelectedProject] = useState('Todos os Projetos');
-  const [selectedStatus, setSelectedStatus] = useState('Todas');
-  const [tasks, setTasks] = useState([
-    { task: 'Product Testing', status: 'Em Progresso', project: 'Projeto A' },
-    { task: 'Design Review', status: 'Pendente', project: 'Projeto B' },
-    { task: 'Code Review', status: 'Pendente', project: 'Projeto A' },
-    { task: 'Client Meeting', status: 'Em Progresso', project: 'Projeto C' },
-    { task: 'Bug Fixing', status: 'Concluído', project: 'Projeto A' },
-  ]);
-
-  const [showProjectOptions, setShowProjectOptions] = useState(false);
-  const [showStatusOptions, setShowStatusOptions] = useState(false);
-
-  const filteredTasks = tasks.filter(task => {
-    return (selectedStatus === 'Todas' || task.status === selectedStatus) &&
-           (selectedProject === 'Todos os Projetos' || task.project === selectedProject);
-  });
+  const hasProjects = projects.length > 0;
+  const hasTarefas = tarefas.length > 0;
 
   return (
     <ScrollView style={styles.container}>
-      <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-        <Text style={styles.backButtonText}>← Voltar</Text>
-      </TouchableOpacity>
-      
-      <Text style={styles.title}>Tarefas</Text>
-      <Text style={styles.subtitle}>Abaixo está um resumo das tarefas dos seus Projetos.</Text>
-
-      <View style={styles.filterContainer}>
-        <View style={styles.filterSection}>
-          <Text style={styles.filterLabel}>Selecionar Projeto:</Text>
-          <TouchableOpacity
-            style={styles.selectedFilterButton}
-            onPress={() => setShowProjectOptions(!showProjectOptions)}
-          >
-            <Text style={styles.selectedFilterText}>{selectedProject}</Text>
-          </TouchableOpacity>
-          {showProjectOptions && (
-            <View style={styles.optionsContainer}>
-              {['Todos os Projetos', 'Projeto A', 'Projeto B', 'Projeto C'].map((project) => (
-                <TouchableOpacity
-                  key={project}
-                  style={styles.optionButton}
-                  onPress={() => {
-                    setSelectedProject(project);
-                    setShowProjectOptions(false);
-                  }}
-                >
-                  <Text style={styles.optionButtonText}>{project}</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          )}
-        </View>
-
-        <View style={styles.filterSection}>
-          <Text style={styles.filterLabel}>Filtrar por Status:</Text>
-          <TouchableOpacity
-            style={styles.selectedFilterButton}
-            onPress={() => setShowStatusOptions(!showStatusOptions)}
-          >
-            <Text style={styles.selectedFilterText}>{selectedStatus}</Text>
-          </TouchableOpacity>
-          {showStatusOptions && (
-            <View style={styles.optionsContainer}>
-              {['Todas', 'Pendente', 'Em Progresso', 'Concluído'].map((status) => (
-                <TouchableOpacity
-                  key={status}
-                  style={styles.optionButton}
-                  onPress={() => {
-                    setSelectedStatus(status);
-                    setShowStatusOptions(false);
-                  }}
-                >
-                  <Text style={styles.optionButtonText}>{status}</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          )}
-        </View>
+      <View style={styles.header}>
+        <TouchableOpacity onPress={handleGoHome}> 
+          <MaterialCommunityIcons name="arrow-left" size={24} color="black" />
+        </TouchableOpacity>
+        <Text style={styles.title}>Tarefas</Text>
       </View>
 
-      {filteredTasks.map((task, index) => (
-        <TaskItem
-          key={index}
-          task={task}
-        />
-      ))}
+      {hasProjects && hasTarefas ? (
+        <View>
+          {tarefas.map((tarefa) => (
+            <View key={tarefa.id} style={styles.tarefaItem}>
+              <Text style={styles.tarefaTitle}>{tarefa.title}</Text>
+              <Text style={styles.tarefaStatus}>{tarefa.status}</Text>
+            </View>
+          ))}
+        </View>
+      ) : (
+        <View style={styles.noDataContainer}>
+          {!hasProjects ? (
+            <Text style={styles.noDataText}>Você não está em nenhum projeto.</Text>
+          ) : (
+            <Text style={styles.noDataText}>Nenhuma tarefa encontrada.</Text>
+          )}
+        </View>
+      )}
+
+      {/* Modal para adicionar nova tarefa ou selecionar projeto, se necessário */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Adicionar Nova Tarefa</Text>
+            {/* Aqui você pode implementar um formulário para adicionar nova tarefa */}
+            <Pressable onPress={() => setModalVisible(false)} style={styles.modalCloseButton}>
+              <Text style={styles.modalCloseButtonText}>Fechar</Text>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
     </ScrollView>
   );
 };
@@ -131,101 +100,80 @@ const Tarefas = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
     backgroundColor: '#f8f8f8',
+    marginTop: 30,
   },
-  backButton: {
-    marginBottom: 20,
-    padding: 10,
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  backButtonText: {
-    fontSize: 18,
-    color: '#007bff',
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    backgroundColor: '#fff',
   },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    marginBottom: 10,
+    marginLeft: 16,
   },
-  subtitle: {
-    marginBottom: 20,
+  noDataContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 16,
+    backgroundColor: '#fff',
+    marginBottom: 16,
   },
-  filterContainer: {
-    marginBottom: 20,
+  noDataText: {
+    fontSize: 18,
+    color: '#777',
+    textAlign: 'center',
   },
-  filterSection: {
-    marginBottom: 20,
+  tarefaItem: {
+    padding: 16,
+    backgroundColor: '#fff',
+    marginBottom: 8,
+    borderRadius: 8,
   },
-  filterLabel: {
-    fontSize: 16,
+  tarefaTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  tarefaStatus: {
+    fontSize: 14,
+    color: '#777',
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.5)',
+  },
+  modalContent: {
+    width: '80%',
+    backgroundColor: 'white',
+    borderRadius: 10,
+    padding: 20,
+  },
+  modalTitle: {
+    fontSize: 18,
     fontWeight: 'bold',
     marginBottom: 10,
   },
-  selectedFilterButton: {
-    backgroundColor: '#eee',
-    padding: 10,
-    borderRadius: 8,
-    marginBottom: 10,
-  },
-  selectedFilterText: {
-    fontSize: 16,
-    color: '#333',
-  },
-  optionsContainer: {
-    backgroundColor: '#fff',
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#ccc',
-    padding: 10,
-  },
-  optionButton: {
-    padding: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: '#ddd',
-  },
-  optionButtonText: {
-    fontSize: 16,
-    color: '#333',
-  },
-  taskItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+  modalCloseButton: {
+    marginTop: 10,
     alignItems: 'center',
-    padding: 15,
-    borderWidth: 1,
-    borderColor: '#ccc',
-    marginBottom: 10,
+    padding: 10,
+    backgroundColor: '#007BFF',
     borderRadius: 5,
   },
-  completedTask: {
-    backgroundColor: '#d3d3d3', // Light gray for completed tasks
-    borderColor: '#d3d3d3',
-  },
-  inProgressTask: {
-    backgroundColor: '#d9f9d9', // Light green for in progress tasks
-    borderColor: '#d9f9d9',
-  },
-  pendingTask: {
-    backgroundColor: '#f9d9d9', // Light red for pending tasks
-    borderColor: '#f9d9d9',
-  },
-  taskInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  taskName: {
+  modalCloseButtonText: {
+    color: 'white',
     fontSize: 16,
-    marginRight: 10,
-  },
-  avatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-  },
-  statusText: {
-    fontSize: 16,
-    fontWeight: 'bold',
   },
 });
 
-export default Tarefas;
+export default Tarefa;

@@ -1,151 +1,166 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 
 const Dashboard_User = () => {
   const navigation = useNavigation();
-  
-  // Removido o estado e dados dos projetos e modal
-  // const [projects, setProjects] = useState([
-  //   { id: '1', name: 'Projeto A' },
-  //   { id: '2', name: 'Projeto B' },
-  //   { id: '3', name: 'Projeto C' },
-  // ]);
-  // const [selectedProject, setSelectedProject] = useState(projects[0]);
-  // const [modalVisible, setModalVisible] = useState(false);
 
-  // Mantendo os dados das tarefas
-  const [tasks, setTasks] = useState([
-    {
-      type: 'Tarefa',
-      description: 'Descrição da Tarefa',
-      due: 'Hoje, 6:20pm',
-      completed: false,
-    },
-    {
-      type: 'Tarefa',
-      description: 'Descrição da Tarefa',
-      due: 'Hoje, 6:20pm',
-      completed: false,
-    },
-  ]);
+  const [tasks, setTasks] = useState([]);
+  const [projects, setProjects] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [barData, setBarData] = useState([]);
+  const [activityData, setActivityData] = useState([]);
 
-  // Dados fixos para os gráficos
-  const [barData, setBarData] = useState([
-    { label: 'Jan', value: 10, color: 'red' },
-    { label: 'Feb', value: 20, color: 'blue' },
-    { label: 'Mar', value: 15, color: 'green' },
-    { label: 'Apr', value: 30, color: 'orange' },
-    { label: 'May', value: 25, color: 'purple' },
-  ]);
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const projectsResponse = await fetch('https://sua-api.com/projetos'); // Substitua pela sua URL
+        const tasksResponse = await fetch('https://sua-api.com/tarefas'); // Substitua pela sua URL
+        const projetosData = await projectsResponse.json();
+        const tarefasData = await tasksResponse.json();
 
-  const [activityData, setActivityData] = useState([
-    { label: 'Tarefas', value: 16, color: '#007BFF' },
-    { label: 'Concluído', value: 12, color: '#00C851' },
-    { label: 'Trabalhando', value: 8, color: '#FFC107' },
-  ]);
+        setProjects(projetosData);
+        setTasks(tarefasData);
+
+        // Exemplo de dados analíticos
+        const completedTasks = tarefasData.filter(task => task.completed).length;
+        const inProgressTasks = tarefasData.filter(task => !task.completed && task.dueDate >= new Date()).length;
+
+        // Aqui você pode personalizar os dados para os gráficos conforme necessário
+        setActivityData([
+          { label: 'Concluído', value: completedTasks, color: '#00C851' },
+          { label: 'Em andamento', value: inProgressTasks, color: '#FFC107' },
+          { label: 'A Fazer', value: tarefasData.length - completedTasks - inProgressTasks, color: '#FF4444' },
+        ]);
+
+        // Para o gráfico de barras, você pode contar as tarefas por projeto
+        const projectActivity = projetosData.map(projeto => ({
+          label: projeto.name,
+          value: tarefasData.filter(task => task.projectId === projeto.id).length,
+          color: 'blue', // ou uma cor específica para cada projeto
+        }));
+        setBarData(projectActivity);
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   const handleGoHome = () => {
     navigation.navigate('Home'); // Navega para a tela "Home"
   };
 
-  // Encontrar o valor máximo para normalizar as barras
-  const maxBarValue = Math.max(...barData.map(item => item.value));
-  const maxActivityValue = Math.max(...activityData.map(item => item.value));
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <Text>Carregando...</Text>
+      </View>
+    );
+  }
+
+  const maxActivityValue = Math.max(...activityData.map(item => item.value), 1); // Evita divisão por zero
+  const maxBarValue = Math.max(...barData.map(item => item.value), 1); // Evita divisão por zero
 
   return (
     <ScrollView style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={handleGoHome}> 
+        <TouchableOpacity onPress={handleGoHome}>
           <MaterialCommunityIcons name="arrow-left" size={24} color="black" />
         </TouchableOpacity>
         <Text style={styles.title}>VISÃO GERAL DOS SEUS PROJETOS</Text>
       </View>
 
-      <View style={styles.summaryContainer}>
-        <View style={styles.summaryItemContainer}>
-          <View style={styles.summaryItem}>
-            <Text style={styles.summaryItemNumber}>0</Text>
-            <Text style={styles.summaryItemLabel}>Tarefas a Fazer</Text>
-          </View>
-          <View style={styles.summaryItem}>
-            <Text style={styles.summaryItemNumber}>0</Text>
-            <Text style={styles.summaryItemLabel}>Em andamento</Text>
-          </View>
-          <View style={styles.summaryItem}>
-            <Text style={styles.summaryItemNumber}>0</Text>
-            <Text style={styles.summaryItemLabel}>Feito</Text>
-          </View>
+      {projects.length === 0 && tasks.length === 0 ? (
+        <View style={styles.noDataContainer}>
+          <Text style={styles.noDataText}>Nenhum projeto ou tarefa encontrada.</Text>
         </View>
-      </View>
-
-      <View style={styles.progressContainer}>
-        <Text style={styles.progressTitle}>Progresso Atual</Text>
-        <View style={styles.progressItems}>
-          <Text style={styles.progressItemNumber}>15/26</Text>
-          <Text style={styles.progressItemLabel}>Progresso Atual</Text>
-          <Text style={styles.progressItemNumber}>12</Text>
-          <Text style={styles.progressItemLabel}>Tarefas à concluir</Text>
-        </View>
-      </View>
-
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>ATIVIDADE RECENTE</Text>
-        <View style={styles.activityChart}>
-          {activityData.map((item, index) => (
-            <View key={index} style={[styles.activityBar, { height: `${(item.value / maxActivityValue) * 100}%`, backgroundColor: item.color || 'blue' }]}>
-              <Text style={styles.activityLabel}>{item.label}</Text>
+      ) : (
+        <>
+          <View style={styles.summaryContainer}>
+            <View style={styles.summaryItemContainer}>
+              <View style={styles.summaryItem}>
+                <Text style={styles.summaryItemNumber}>{tasks.length}</Text>
+                <Text style={styles.summaryItemLabel}>Tarefas a Fazer</Text>
+              </View>
+              <View style={styles.summaryItem}>
+                <Text style={styles.summaryItemNumber}>{activityData[1]?.value || 0}</Text>
+                <Text style={styles.summaryItemLabel}>Em andamento</Text>
+              </View>
+              <View style={styles.summaryItem}>
+                <Text style={styles.summaryItemNumber}>{activityData[0]?.value || 0}</Text>
+                <Text style={styles.summaryItemLabel}>Feito</Text>
+              </View>
             </View>
-          ))}
-        </View>
-        <ScrollView horizontal={true} style={styles.activityLegendContainer}>
-          <View style={styles.activityLegend}>
-            {activityData.map((item, index) => (
-              <View key={index} style={styles.legendItem}>
-                <View style={[styles.legendCircle, { backgroundColor: item.color }]} />
-                <Text style={styles.legendText}>{item.label}</Text>
+          </View>
+
+          <View style={styles.progressContainer}>
+            <Text style={styles.progressTitle}>Progresso Atual</Text>
+            <View style={styles.progressItems}>
+              <Text style={styles.progressItemNumber}>{activityData.reduce((acc, curr) => acc + curr.value, 0)}/{tasks.length}</Text>
+              <Text style={styles.progressItemLabel}>Progresso Atual</Text>
+            </View>
+          </View>
+
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>ATIVIDADE RECENTE</Text>
+            <View style={styles.activityChart}>
+              {activityData.map((item, index) => (
+                <View key={index} style={[styles.activityBar, { height: `${(item.value / maxActivityValue) * 100}%`, backgroundColor: item.color || 'blue' }]}>
+                  <Text style={styles.activityLabel}>{item.label}</Text>
+                </View>
+              ))}
+            </View>
+            <ScrollView horizontal={true} style={styles.activityLegendContainer}>
+              <View style={styles.activityLegend}>
+                {activityData.map((item, index) => (
+                  <View key={index} style={styles.legendItem}>
+                    <View style={[styles.legendCircle, { backgroundColor: item.color }]} />
+                    <Text style={styles.legendText}>{item.label}</Text>
+                  </View>
+                ))}
+              </View>
+            </ScrollView>
+          </View>
+
+          <View style={styles.barChartContainer}>
+            <Text style={styles.sectionTitle}>ATIVIDADES CONCLUÍDAS POR PROJETO</Text>
+            <View style={styles.barChart}>
+              {barData.map((item, index) => (
+                <View key={index} style={styles.barContainer}>
+                  <View
+                    style={[styles.bar, {
+                      height: `${(item.value / maxBarValue) * 100}%`,
+                      backgroundColor: item.color || 'blue',
+                    }]}
+                  />
+                  <Text style={styles.barLabel}>{item.label}</Text>
+                </View>
+              ))}
+            </View>
+          </View>
+
+          <View style={styles.tasksContainer}>
+            <Text style={styles.tasksTitle}>TAREFAS EM REVISÃO</Text>
+            {tasks.map((task, index) => (
+              <View key={index} style={styles.taskItem}>
+                <View style={styles.taskDetails}>
+                  <Text style={styles.taskType}>{task.type}</Text>
+                  <Text style={styles.taskDescription}>{task.description}</Text>
+                  <Text style={styles.taskDue}>{task.due}</Text>
+                </View>
+                <View style={styles.taskStatus}>
+                  <Text style={styles.taskStatusText}>{task.completed ? 'Concluída' : 'Pendente'}</Text>
+                </View>
               </View>
             ))}
           </View>
-        </ScrollView>
-      </View>
-
-      <View style={styles.barChartContainer}>
-        <Text style={styles.sectionTitle}>ATIVIDADES CONCLUÍDAS POR PROJETO</Text>
-        <View style={styles.barChart}>
-          {barData.map((item, index) => (
-            <View key={index} style={styles.barContainer}>
-              <View
-                style={[
-                  styles.bar,
-                  {
-                    height: `${(item.value / maxBarValue) * 100}%`,
-                    backgroundColor: item.color || 'blue',
-                  },
-                ]}
-              />
-              <Text style={styles.barLabel}>{item.label}</Text>
-            </View>
-          ))}
-        </View>
-      </View>
-
-      <View style={styles.tasksContainer}>
-        <Text style={styles.tasksTitle}>TAREFAS EM REVISÃO</Text>
-        {tasks.map((task, index) => (
-          <View key={index} style={styles.taskItem}>
-            <View style={styles.taskDetails}>
-              <Text style={styles.taskType}>{task.type}</Text>
-              <Text style={styles.taskDescription}>{task.description}</Text>
-              <Text style={styles.taskDue}>{task.due}</Text>
-            </View>
-            <View style={styles.taskStatus}>
-              <Text style={styles.taskStatusText}>{task.completed ? 'Concluída' : 'Pendente'}</Text>
-            </View>
-          </View>
-        ))}
-      </View>
+        </>
+      )}
     </ScrollView>
   );
 };
@@ -154,7 +169,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f8f8f8',
-    marginTop: 30
+    marginTop: 30,
   },
   header: {
     flexDirection: 'row',
@@ -325,7 +340,23 @@ const styles = StyleSheet.create({
     marginTop: 5,
     fontSize: 12,
   },
-  // Removido o estilo do modal
+  noDataContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 16,
+    backgroundColor: '#fff',
+  },
+  noDataText: {
+    fontSize: 18,
+    color: '#777',
+    textAlign: 'center',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
 });
 
 export default Dashboard_User;
