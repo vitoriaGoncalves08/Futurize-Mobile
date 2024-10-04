@@ -1,61 +1,94 @@
 import axios from 'axios';
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Modal } from 'react-native';
-import api from './configs/api';
+import { 
+  View, 
+  Text, 
+  StyleSheet, 
+  TouchableOpacity, 
+  ScrollView, 
+  Modal,
+  FlatList 
+} from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
+
+import api from './configs/api';
 
 const Atividades = ({ navigation }) => {
   const [atividades, setAtividades] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
 
-  // Função para buscar atividades da API
   useEffect(() => {
     const fetchAtividades = async () => {
       try {
-        const response = await api.get('/Atividade/1'); // Substitua o ID conforme necessário
-        setAtividades(response.data); // Salvando dados no estado
+        const response = await api.get('/Atividade/1');
+        setAtividades(response.data);
       } catch (error) {
-        console.error("Erro ao buscar atividades:", error.message); // Log do erro
+        console.error("Erro ao buscar atividades:", error.message);
       }
     };
 
-    fetchAtividades(); // Chamando a função ao carregar o componente
+    fetchAtividades();
   }, []);
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Atividades</Text>
-      <ScrollView style={styles.list}>
-        {atividades.length > 0 ? (
-          atividades.map((atividade) => (
-            <View key={atividade.id} style={styles.atividade}>
-              <Text style={styles.atividadeTitle}>{atividade.titulo}</Text>
-              <Text>{atividade.estado}</Text>
-              <Text>{atividade.tempo_execucao}</Text>
-              <Text>{atividade.projeto.titulo}</Text>
-            </View>
-          ))
-        ) : (
-          <Text>Nenhuma atividade encontrada</Text>
-        )}
-      </ScrollView>
-
-      <View style={styles.buttonContainer}>
-        <TouchableOpacity style={styles.button} onPress={() => navigation.replace("Dashboard")}>
-          <Text style={styles.buttonText}>Dashboard</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.button} onPress={() => navigation.navigate("Tarefas")}>
-          <Text style={styles.buttonText}>Tarefas a Fazer</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.button} onPress={() => navigation.navigate("Dashboard_User")}>
-          <Text style={styles.buttonText}>Meu Dashboard</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.settingsButton} onPress={() => setModalVisible(true)}>
-          <FontAwesome name="cog" size={24} color="white" />
+      {/* Header */}
+      <View style={styles.header}>
+        <Text style={styles.title}>Bem Vindo, {'\n'}Maverick</Text>
+        <TouchableOpacity>
+          <FontAwesome name="user-circle-o" size={24} color="black" />
         </TouchableOpacity>
       </View>
 
-      {/* Modal de Configurações */}
+      {/* Dashboard Section */}
+      <View style={styles.dashboardSection}>
+        <TouchableOpacity style={styles.dashboardCard} onPress={() => navigation.replace("Dashboard")}>
+          <Text style={styles.dashboardTitle}>Dashboard</Text>
+          <Text>3 Projects | 45 Files</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Tabs */}
+      <View style={styles.tabs}>
+        <TouchableOpacity style={styles.tabButton} onPress={() => navigation.navigate("Tarefas")}>
+          <Text style={styles.tabText}>Todas as Tarefas</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.tabButton}>
+          <Text style={styles.tabText}>Últimos Projetos</Text>
+        </TouchableOpacity>
+      </View>
+{/* Task List */}
+      <FlatList
+        data={atividades}
+        keyExtractor={item => item.id.toString()}
+        renderItem={({item}) => (
+          <View style={styles.taskItem}>
+            <TouchableOpacity style={styles.checkbox}>
+              {/* You can add a checkbox component here */}
+            </TouchableOpacity>
+            <View style={styles.taskInfo}>
+              <Text style={styles.taskTitle}>{item.titulo}</Text>
+              <Text style={styles.taskDetails}>
+                Fazer Agora
+              </Text>
+            </View>
+            
+          </View>
+          
+        )}
+      />
+       <View style={styles.bottomNavigation}>
+           <TouchableOpacity style={styles.navButton} onPress={() => navigation.navigate("Dashboard_User")}>
+          <Text style={styles.navButtonText}>Meu Dashboard</Text>
+        </TouchableOpacity>
+          <FontAwesome name="cog" size={24} color="white" />
+
+      </View>
+
+      {/* Bottom Navigation */}
+     
+
+      {/* Modal */}
       <Modal
         animationType="slide"
         transparent={true}
@@ -75,25 +108,38 @@ const Atividades = ({ navigation }) => {
   );
 };
 
-// Estilos do componente
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
     backgroundColor: '#f5f5f5',
+  },
+  // Header Styles
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 20,
+    backgroundColor: '#fff', 
+     shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    marginBottom: 20,
   },
-  list: {
-    flex: 1,
+  // Dashboard Section Styles
+  dashboardSection: {
+    padding: 20,
   },
-  atividade: {
-    marginVertical: 10,
-    padding: 15,
-    backgroundColor: 'white',
+  dashboardCard: {
+    backgroundColor: '#fff',
+    padding: 20,
     borderRadius: 8,
     shadowColor: '#000',
     shadowOffset: {
@@ -104,16 +150,17 @@ const styles = StyleSheet.create({
     shadowRadius: 3.84,
     elevation: 5,
   },
-  atividadeTitle: {
+  dashboardTitle: {
+    fontSize: 18,
     fontWeight: 'bold',
-    fontSize: 16,
   },
-  buttonContainer: {
+  // Tabs Styles
+  tabs: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginTop: 20,
+    padding: 20,
   },
-  button: {
+  tabButton: {
     backgroundColor: '#007bff',
     padding: 10,
     borderRadius: 8,
@@ -121,7 +168,69 @@ const styles = StyleSheet.create({
     marginRight: 10,
     alignItems: 'center',
   },
-  buttonText: {
+  tabText: {
+    color: 'white',
+    textAlign: 'center',
+  },
+  // Task List Styles
+  taskItem: {
+    flexDirection: 'row',
+    padding: 20,
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 3.84,
+    elevation: 5,
+    marginBottom: 10,
+  },
+  checkbox: {
+    width: 20,
+    height: 20,
+    borderRadius: 50,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    marginRight: 10,
+  },
+  taskInfo: {
+    flex: 1,
+  },
+  taskTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  taskDetails: {
+    fontSize: 14,
+    color: '#666',
+  },
+  // Bottom Navigation Styles
+  bottomNavigation: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    padding: 20,
+    backgroundColor: '#fff',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  navButton: {
+    backgroundColor: '#007bff',
+    padding: 10,
+    borderRadius: 8,
+    flex: 1,
+    marginRight: 10,
+    alignItems: 'center',
+  },
+  navButtonText: {
     color: 'white',
     textAlign: 'center',
   },
@@ -134,6 +243,7 @@ const styles = StyleSheet.create({
     width: 50,
     height: 50,
   },
+  // Modal Styles
   modalContainer: {
     flex: 1,
     justifyContent: 'center',

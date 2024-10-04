@@ -1,28 +1,26 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Modal, FlatList, Pressable } from 'react-native';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Modal, FlatList, Pressable, ActivityIndicator } from 'react-native';
+import api from './configs/api'; // Ajuste o caminho conforme necessário
 import { useNavigation } from '@react-navigation/native';
 
-const Tarefa = () => {
+const Tarefas = () => {
   const navigation = useNavigation();
-
-  // Estado para tarefas e projetos
-  const [tarefas, setTarefas] = useState([]);
   const [projects, setProjects] = useState([]);
+  const [selectedProject, setSelectedProject] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [loadingTasks, setLoadingTasks] = useState(false);
+  const [tasks, setTasks] = useState([]);
 
   useEffect(() => {
-    // Função para buscar dados da API
-    const fetchData = async () => {
+    const fetchProjects = async () => {
       try {
-        const projetosResponse = await fetch('https://sua-api.com/projetos'); // Substitua pela sua URL
-        const tarefasResponse = await fetch('https://sua-api.com/tarefas'); // Substitua pela sua URL
-        const projetosData = await projetosResponse.json();
-        const tarefasData = await tarefasResponse.json();
-
-        setProjects(projetosData);
-        setTarefas(tarefasData);
+        const response = await api.get('/projetos'); // Substitua pela sua URL
+        setProjects(response.data);
+        if (response.data.length > 0) {
+          setSelectedProject(response.data[0]); // Seleciona o primeiro projeto por padrão
+          fetchTasks(response.data[0].id); // Busca as tarefas do primeiro projeto
+        }
       } catch (error) {
         console.error(error);
       } finally {
@@ -30,53 +28,72 @@ const Tarefa = () => {
       }
     };
 
-    fetchData();
+    fetchProjects();
   }, []);
 
-  const handleGoHome = () => {
-    navigation.navigate('Home'); // Navega para a tela "Home"
+  const fetchTasks = async (projectId) => {
+    setLoadingTasks(true);
+    try {
+      const response = await api.get(`/Tarefas/${projectId}`); // Ajuste o endpoint conforme necessário
+      setTasks(response.data);
+    } catch (error) {
+      console.error("Erro ao buscar tarefas:", error);
+    } finally {
+      setLoadingTasks(false);
+    }
+  };
+
+  const handleProjectSelect = (project) => {
+    setSelectedProject(project);
+    fetchTasks(project.id); // Atualiza as tarefas ao selecionar um novo projeto
+    setModalVisible(false);
   };
 
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <Text>Carregando...</Text>
+        <ActivityIndicator size="large" color="#0000ff" />
       </View>
     );
   }
 
-  const hasProjects = projects.length > 0;
-  const hasTarefas = tarefas.length > 0;
-
   return (
     <ScrollView style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={handleGoHome}> 
-          <MaterialCommunityIcons name="arrow-left" size={24} color="black" />
+        <TouchableOpacity onPress={() => navigation.goBack()}> 
+          <Text style={styles.backText}>Voltar</Text>
         </TouchableOpacity>
-        <Text style={styles.title}>Tarefas</Text>
+        <TouchableOpacity onPress={() => setModalVisible(true)} style={styles.projectSelector}>
+          <Text style={styles.title}>{selectedProject ? selectedProject.nome : 'Nenhum Projeto'}</Text>
+        </TouchableOpacity>
       </View>
 
-      {hasProjects && hasTarefas ? (
-        <View>
-          {tarefas.map((tarefa) => (
-            <View key={tarefa.id} style={styles.tarefaItem}>
-              <Text style={styles.tarefaTitle}>{tarefa.title}</Text>
-              <Text style={styles.tarefaStatus}>{tarefa.status}</Text>
-            </View>
-          ))}
+      {projects.length === 0 ? (
+        <View style={styles.noDataContainer}>
+          <Text style={styles.noDataText}>Sem projetos disponíveis</Text>
         </View>
       ) : (
-        <View style={styles.noDataContainer}>
-          {!hasProjects ? (
-            <Text style={styles.noDataText}>Você não está em nenhum projeto.</Text>
+        <>
+          {loadingTasks ? (
+            <ActivityIndicator size="large" color="#0000ff" />
           ) : (
-            <Text style={styles.noDataText}>Nenhuma tarefa encontrada.</Text>
+            <View style={styles.tasksContainer}>
+              {tasks.length > 0 ? (
+                tasks.map((task) => (
+                  <View key={task.id} style={styles.task}>
+                    <Text style={styles.taskTitle}>{task.nome}</Text>
+                    <Text>{task.estado}</Text>
+                    <Text>{task.tempo_execucao}</Text>
+                  </View>
+                ))
+              ) : (
+                <Text>Nenhuma tarefa encontrada para este projeto.</Text>
+              )}
+            </View>
           )}
-        </View>
+        </>
       )}
 
-      {/* Modal para adicionar nova tarefa ou selecionar projeto, se necessário */}
       <Modal
         animationType="slide"
         transparent={true}
@@ -85,8 +102,16 @@ const Tarefa = () => {
       >
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Adicionar Nova Tarefa</Text>
-            {/* Aqui você pode implementar um formulário para adicionar nova tarefa */}
+            <Text style={styles.modalTitle}>Escolha um Projeto</Text>
+            <FlatList
+              data={projects}
+              keyExtractor={(item) => item.id.toString()}
+              renderItem={({ item }) => (
+                <Pressable onPress={() => handleProjectSelect(item)} style={styles.modalItem}>
+                  <Text style={styles.modalItemText}>{item.nome}</Text>
+                </Pressable>
+              )}
+            />
             <Pressable onPress={() => setModalVisible(false)} style={styles.modalCloseButton}>
               <Text style={styles.modalCloseButtonText}>Fechar</Text>
             </Pressable>
@@ -100,8 +125,8 @@ const Tarefa = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f8f8',
-    marginTop: 30,
+    padding: 20,
+    backgroundColor: '#f5f5f5',
   },
   loadingContainer: {
     flex: 1,
@@ -111,40 +136,49 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 16,
-    backgroundColor: '#fff',
+    marginBottom: 20,
+  },
+  backText: {
+    fontSize: 18,
+    color: '#007BFF',
   },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
     marginLeft: 16,
   },
+  projectSelector: {
+    marginLeft: 16,
+  },
   noDataContainer: {
-    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 16,
-    backgroundColor: '#fff',
-    marginBottom: 16,
   },
   noDataText: {
     fontSize: 18,
     color: '#777',
-    textAlign: 'center',
   },
-  tarefaItem: {
+  tasksContainer: {
     padding: 16,
-    backgroundColor: '#fff',
-    marginBottom: 8,
+  },
+  task: {
+    marginVertical: 10,
+    padding: 15,
+    backgroundColor: 'white',
     borderRadius: 8,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
-  tarefaTitle: {
-    fontSize: 18,
+  taskTitle: {
     fontWeight: 'bold',
-  },
-  tarefaStatus: {
-    fontSize: 14,
-    color: '#777',
+    fontSize: 16,
   },
   modalContainer: {
     flex: 1,
@@ -163,6 +197,14 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 10,
   },
+  modalItem: {
+    padding: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#ccc',
+  },
+  modalItemText: {
+    fontSize: 16,
+  },
   modalCloseButton: {
     marginTop: 10,
     alignItems: 'center',
@@ -176,4 +218,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default Tarefa;
+export default Tarefas;

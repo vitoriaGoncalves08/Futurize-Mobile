@@ -8,7 +8,7 @@ const Atividades = () => {
   useEffect(() => {
     const fetchAtividades = async () => {
       try {
-        const response = await api.get('/Atividade/1'); // substitua o ID conforme necessário
+        const response = await api.get('/Atividade/{id}'); // substitua o ID conforme necessário
         setAtividades(response.data);
       } catch (error) {
         console.error("Erro ao buscar atividades:", error);
