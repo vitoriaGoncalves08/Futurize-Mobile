@@ -21,6 +21,7 @@
     "expo-status-bar": "~1.12.1",
     "react": "18.2.0",
     "react-native": "0.74.5",
+    "react-native-chart-kit": "^6.12.0",
     "react-native-dropdown-select-list": "*",
     "react-native-maps": "1.14.0",
     "react-native-masked-text": "*",

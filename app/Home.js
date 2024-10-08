@@ -44,7 +44,7 @@ const Atividades = ({ navigation }) => {
       <View style={styles.dashboardSection}>
         <TouchableOpacity style={styles.dashboardCard} onPress={() => navigation.replace("Dashboard")}>
           <Text style={styles.dashboardTitle}>Dashboard</Text>
-          <Text>3 Projects | 45 Files</Text>
+          <Text>Projetos e atividades de forma Dinâmica</Text>
         </TouchableOpacity>
       </View>
 
