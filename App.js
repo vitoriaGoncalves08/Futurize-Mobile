@@ -58,7 +58,7 @@ const verificarNotificacao = async (atividadeId) => {
       try {
         await Notifications.scheduleNotificationAsync({
           content: {
-            title: "Notificação de Atividade",
+            title: "Futurize🌐 - Notificação",
             body: mensagem,
             sound: true,
             priority: Notifications.AndroidNotificationPriority.HIGH, // Prioridade alta para Android
