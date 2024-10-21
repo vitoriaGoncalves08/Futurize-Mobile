@@ -12,10 +12,12 @@ import {
 import { FontAwesome } from '@expo/vector-icons';
 
 import api from './configs/api';
+import { useAuth } from './configs/AuthContext';
 
 const Atividades = ({ navigation }) => {
   const [atividades, setAtividades] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
+  const { user } = useAuth();
 
   useEffect(() => {
     const fetchAtividades = async () => {
@@ -34,7 +36,9 @@ const Atividades = ({ navigation }) => {
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.title}>Bem Vindo, {'\n'}Maverick</Text>
+      <Text style={styles.title}>
+         {user ? `Bem-vindo, ${user.nome}!` : 'Usuário não logado'}
+        </Text>
         <TouchableOpacity>
           <FontAwesome name="user-circle-o" size={24} color="black" />
         </TouchableOpacity>

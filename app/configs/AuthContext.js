@@ -19,14 +19,14 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const getUserToken = async () => {
       try {
-        const userToken = await AsyncStorage.getItem('@tokenJWT');
+        const userToken = await AsyncStorage.getItem('@user');
         if (userToken) {
-          setUser(JSON.parse(userToken));
+          setUser(JSON.parse(userToken)); // Define o usuário logado
         } else {
           navigation.navigate('Login');
         }
       } catch (error) {
-        
+        console.error('Erro ao obter token:', error);
       }
     };
     getUserToken();
@@ -38,22 +38,32 @@ export const AuthProvider = ({ children }) => {
       // Realiza a requisição de login
       const response = await api.post('/login', { email, senha });
       const token = response.data.tokenJWT;
-
+  
       if (!token) {
         throw new Error('Token não retornado pela API.');
       }
-
-      // Armazena o token e os dados do usuário
+  
+      // Busca o usuário completo pelo email
+      const userResponse = await api.get(`/Usuario/buscar/${email}`);
+      const userData = userResponse.data;
+  
+      // Armazena o token e os dados completos do usuário no AsyncStorage
       await AsyncStorage.setItem('@tokenJWT', token);
-      await AsyncStorage.setItem('@user', JSON.stringify(response.data));
-
-      setUser(response.data); // Define o usuário no estado
+      await AsyncStorage.setItem('@user', JSON.stringify(userData));
+  
+      // Define o usuário no estado
+      setUser(userData);
       Alert.alert('Sucesso', 'Login realizado com sucesso!');
-      navigation.navigate('Home'); // Redireciona para a Home após login
+      console.log("Usuário logado:", userData);
+  
+      // Redireciona para a Home após login
+      navigation.navigate('Home'); 
     } catch (error) {
       console.error('Erro no login:', error.response?.data || error.message);
     }
   };
+  
+
 
   const signout = async () => {
     try {

@@ -14,6 +14,7 @@ import Dashboard_User from './app/Dashboard_User';
 import Tarefas from './app/Tarefas';
 
 import api from './app/configs/api';
+import { useAuth } from './app/configs/AuthContext';
 
 const Stack = createNativeStackNavigator();
 
@@ -75,12 +76,13 @@ const verificarNotificacao = async (atividadeId) => {
 };
 
 const App = () => {
+  const { user } = useAuth();
   useEffect(() => {
     const initNotificacoes = async () => {
       const permissaoConcedida = await solicitarPermissaoNotificacao();
       if (permissaoConcedida) {
         // Substitua pelo ID da atividade para verificar notificações
-        const atividadeId = 1;
+        const atividadeId = user.id;
 
         // Verifica notificações a cada 15 segundos
         const interval = setInterval(() => {
