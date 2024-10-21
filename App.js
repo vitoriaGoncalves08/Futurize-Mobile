@@ -20,9 +20,9 @@ const Stack = createNativeStackNavigator();
 // Configuração para lidar com notificações no Android e iOS
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
-    shouldShowAlert: true, // Mostra o alerta na tela
-    shouldPlaySound: true, // Reproduz o som da notificação
-    shouldSetBadge: true, // Exibe o ícone na barra de status
+    shouldShowAlert: true,  // Mostra o alerta na tela
+    shouldPlaySound: true,  // Reproduz o som da notificação
+    shouldSetBadge: true,   // Exibe o ícone na barra de status
   }),
 });
 
@@ -41,6 +41,7 @@ const solicitarPermissaoNotificacao = async () => {
     return false;
   }
 
+  console.log("Permissões de notificação concedidas");
   return true;
 };
 
@@ -51,32 +52,27 @@ const verificarNotificacao = async (atividadeId) => {
     const mensagem = response.data.mensagem;
 
     if (mensagem) {
+      console.log("Mensagem recebida do servidor:", mensagem); // Log para depuração
+
       // Exibe a notificação na barra de notificações
-      await Notifications.scheduleNotificationAsync({
-        content: {
-          title: "Notificação de Atividade",
-          body: mensagem,
-          sound: true,
-          priority: Notifications.AndroidNotificationPriority.HIGH, // Prioridade alta para Android
-        },
-        trigger: null, // Imediata
-      });
+      try {
+        await Notifications.scheduleNotificationAsync({
+          content: {
+            title: "Notificação de Atividade",
+            body: mensagem,
+            sound: true,
+            priority: Notifications.AndroidNotificationPriority.HIGH, // Prioridade alta para Android
+          },
+          trigger: { seconds: 1 }, // Gatilho de 1 segundo para garantir a exibição
+        });
+      } catch (error) {
+        console.error("Erro ao agendar a notificação:", error);
+      }
     }
   } catch (error) {
     console.error("Erro ao verificar notificação:", error);
   }
 };
-
-// Função para limpar a notificação no backend
-const limparNotificacao = async (atividadeId) => {
-  try {
-    await api.put(`/Atividade/notificacao/limpar/${atividadeId}`);
-    console.log("Notificação limpa com sucesso no backend");
-  } catch (error) {
-    console.error("Erro ao limpar a notificação:", error);
-  }
-};
-
 
 const App = () => {
   useEffect(() => {
@@ -97,6 +93,15 @@ const App = () => {
     };
 
     initNotificacoes();
+  }, []);
+
+  // Lida com notificações recebidas enquanto o app está em primeiro plano
+  useEffect(() => {
+    const subscription = Notifications.addNotificationReceivedListener(notification => {
+      console.log("Notificação recebida em primeiro plano:", notification);
+    });
+
+    return () => subscription.remove();
   }, []);
 
   return (
