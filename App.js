@@ -15,7 +15,6 @@ import Tarefas from './app/Tarefas';
 
 import api from './app/configs/api';
 import { useAuth } from './app/configs/AuthContext';
-
 const Stack = createNativeStackNavigator();
 
 // Configuração para lidar com notificações no Android e iOS
@@ -50,6 +49,7 @@ const solicitarPermissaoNotificacao = async () => {
 const verificarNotificacao = async (atividadeId) => {
   try {
     const response = await api.get(`/Atividade/notificacao/${atividadeId}`);
+  console.log("Resposta da verificação de notificação:", response.data);
     const mensagem = response.data.mensagem;
 
     if (mensagem) {
