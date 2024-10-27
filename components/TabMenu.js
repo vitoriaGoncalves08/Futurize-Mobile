@@ -8,8 +8,7 @@ import {
   Ionicons,
   MaterialIcons,
 } from '@expo/vector-icons';
-
-const user = { nome: 'admin', senha: 1234 };
+import Entypo from '@expo/vector-icons/Entypo';
 
 const CustomTabMenuBottom = ({ children, onPress }) => (
   <TouchableOpacity
@@ -33,45 +32,33 @@ const TabMenu = () => {
       <TouchableOpacity
         style={styles.tabItem}
         onPress={() => {
-          navigation.navigate('Catalogo');
+          navigation.navigate('Home');
         }}>
         <MaterialCommunityIcons style={styles.icons} name="home" size={29} color={'#424141'} />
       </TouchableOpacity>
       <TouchableOpacity
         style={styles.tabItem}
         onPress={() => {
-          navigation.navigate('PesquisarProduto');
+          navigation.navigate('Dashboard');
         }}>
-        <FontAwesome style={styles.icons} name="search" size={24} color={'#424141'} />
+        <Entypo name="bar-graph" size={25} color={'#424141'} style={styles.icons}/>
       </TouchableOpacity>
-      {user.nome === 'admin' && user.senha === 123 ? (
-        <>
-          <CustomTabMenuBottom onPress={() => navigation.navigate('Cadastro')}>
-            <FontAwesome5 name="plus" size={24} color="#fff" />
-          </CustomTabMenuBottom>
-          <TouchableOpacity
-            style={styles.tabItem}
-            onPress={() => {
-              navigation.navigate('Login');
-            }}>
-            <MaterialIcons style={styles.icons} name="dashboard" size={24} color={'#424141'} />
-          </TouchableOpacity>
-        </>
-      ) : (
-        <TouchableOpacity
-          style={styles.tabItem}
-          onPress={() => {
-            navigation.navigate('Carrinho');
-          }}>
-          <FontAwesome5 style={styles.icons} name="shopping-cart" size={22} color={'#424141'} />
-        </TouchableOpacity>
-      )}
+      {/* <CustomTabMenuBottom onPress={() => navigation.navigate('Login')}>
+        <FontAwesome5 name="plus" size={24} color="#fff" />
+      </CustomTabMenuBottom> */}
       <TouchableOpacity
         style={styles.tabItem}
         onPress={() => {
-          navigation.navigate('CadastroEndereco');
+          navigation.navigate('Dashboard_User');
         }}>
-        <MaterialCommunityIcons style={styles.icons} name="order-bool-descending" size={27} color={'#424141'}  />
+        <MaterialIcons style={styles.icons} name="dashboard" size={24} color={'#424141'} />
+      </TouchableOpacity>
+      <TouchableOpacity
+        style={styles.tabItem}
+        onPress={() => {
+          navigation.navigate('Login');
+        }}>
+       <Entypo name="login" size={24} color={'#424141'} style={styles.icons}/>
       </TouchableOpacity>
     </View>
   );

@@ -4,6 +4,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import api from './configs/api';
 import { useNavigation } from '@react-navigation/native';
 import { BarChart } from "react-native-chart-kit";
+import TabMenu from '../components/TabMenu';
 
 const Dashboard = () => {
   const navigation = useNavigation();
@@ -29,10 +30,10 @@ const Dashboard = () => {
         const response = await api.get(`/Projeto/porUsuario/${userId}`);
         setProjetos(response.data);
 
-        
+
         if (response.data.length > 0) {
-          setSelectedProjeto(response.data[0]); 
-          await fetchActivities(response.data[0].id); 
+          setSelectedProjeto(response.data[0]);
+          await fetchActivities(response.data[0].id);
         }
       } catch (error) {
         console.error("Erro ao buscar dados:", error);
@@ -56,7 +57,7 @@ const Dashboard = () => {
             atividadesAndamentoResponse,
           ] = await Promise.all([
             api.get(`/dashboard/atividades/${userId}`),
-             api.get(`/dashboard/projetos-criados/${userId}`),
+            api.get(`/dashboard/projetos-criados/${userId}`),
             api.get(`/dashboard/projetos-alocados/${userId}`),
             api.get(`/dashboard/projetos-concluidos/${userId}`),
             api.get(`/dashboard/atividades-andamento/${userId}`),
@@ -120,119 +121,122 @@ const Dashboard = () => {
   }
 
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={handleGoHome}>
-          <MaterialCommunityIcons name="arrow-left" size={24} color="black" />
-        </TouchableOpacity>
-        <Text style={styles.title}>Dashboard</Text>
-      </View>
+    <>
+      <ScrollView style={styles.container}>
+        <View style={styles.header}>
+          <TouchableOpacity onPress={handleGoHome}>
+            <MaterialCommunityIcons name="arrow-left" size={24} color="black" />
+          </TouchableOpacity>
+          <Text style={styles.title}>Dashboard</Text>
+        </View>
 
-      <View style={styles.dashboardContainer}>
-        <TouchableOpacity onPress={() => setModalVisible(true)} style={styles.projetoSelector}>
-          <Text style={styles.title}>
-            Projeto: {selectedProjeto ? selectedProjeto.nome : 'Selecione um projeto'}
-          </Text>
-          <MaterialCommunityIcons name="chevron-down" size={24} color="black" />
-        </TouchableOpacity>
+        <View style={styles.dashboardContainer}>
+          <TouchableOpacity onPress={() => setModalVisible(true)} style={styles.projetoSelector}>
+            <Text style={styles.title}>
+              Projeto: {selectedProjeto ? selectedProjeto.nome : 'Selecione um projeto'}
+            </Text>
+            <MaterialCommunityIcons name="chevron-down" size={24} color="black" />
+          </TouchableOpacity>
 
-        <View style={styles.chartContainer}>
-          <Text style={styles.cardTitle}>Projetos por Status</Text>
-          <BarChart
-            data={formatDataToBarChart(dashboardData)}
-            width={350}
-            height={220}
-            yAxisLabel=""
-            chartConfig={{
-              backgroundColor: "#e26a00",
-              backgroundGradientFrom: "#fb8c00",
-              backgroundGradientTo: "#ffa726",
-              decimalPlaces: 0,
-              color: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
-              labelColor: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
-              style: {
+          <View style={styles.chartContainer}>
+            <Text style={styles.cardTitle}>Projetos por Status</Text>
+            <BarChart
+              data={formatDataToBarChart(dashboardData)}
+              width={350}
+              height={220}
+              yAxisLabel=""
+              chartConfig={{
+                backgroundColor: "#e26a00",
+                backgroundGradientFrom: "#fb8c00",
+                backgroundGradientTo: "#ffa726",
+                decimalPlaces: 0,
+                color: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
+                labelColor: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
+                style: {
+                  borderRadius: 16
+                },
+              }}
+              style={{
+                marginVertical: 8,
                 borderRadius: 16
-              },
-            }}
-            style={{
-              marginVertical: 8,
-              borderRadius: 16
-            }}
-          />
-        </View>
-
-        <View style={styles.dataContainer}>
-          <View style={styles.card}>
-            <Text style={styles.cardTitle}>Total de Atividades</Text>
-            <Text style={styles.cardValue}>{dashboardData.totalAtividades}</Text>
-          </View>
-
-          <View style={styles.card}>
-            <Text style={styles.cardTitle}>Projetos Criados</Text>
-            <Text style={styles.cardValue}>{dashboardData.projetosCriados}</Text>
-          </View>
-
-          <View style={styles.card}>
-            <Text style={styles.cardTitle}>Projetos Alocados</Text>
-            <Text style={styles.cardValue}>{dashboardData.projetosAlocados}</Text>
-          </View>
-
-          <View style={styles.card}>
-            <Text style={styles.cardTitle}>Projetos Concluídos</Text>
-            <Text style={styles.cardValue}>{dashboardData.projetosConcluidos}</Text>
-          </View>
-
-          <View style={styles.card}>
-            <Text style={styles.cardTitle}>Atividades em Andamento</Text>
-            <Text style={styles.cardValue}>{dashboardData .atividadesAndamento}</Text>
-          </View>
-        </View>
-
-        <View style={styles.atividadesContainer}>
-          <Text style={styles.atividadesTitle}>Atividades do Projeto {selectedProjeto ? selectedProjeto.nome : ''}</Text>
-          {activities.map((atividade) => (
-            <View key={atividade.id} style={styles.atividadeCard}>
-              <Text style={styles.atividadeTitle}>{atividade.nome}</Text>
-            </View>
-          ))}
-        </View>
-      </View>
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={modalVisible}
-        onRequestClose={() => {
-          setModalVisible(!modalVisible);
-        }}
-      >
-        <View style={styles.centeredView}>
-          <View style={styles.modalView}>
-            <Text style={styles.modalTitle}>Selecione um Projeto</Text>
-            <FlatList
-              data={projetos}
-              keyExtractor={(item) => item.id.toString()}
-              renderItem={({ item }) => (
-                <TouchableOpacity
-                  onPress={() => {
-                    handleProjetoSelect(item);
-                    setModalVisible(!modalVisible); 
-                  }}
-                  style={styles.projetoModalContainer}
-                >
-                  <Text style={styles.projetoModalTitle}>{item.nome}</Text>
-                </TouchableOpacity>
-              )}
+              }}
             />
-            <Pressable
-              style={[styles.button, styles.buttonClose]}
-              onPress={() => setModalVisible(!modalVisible)}
-            >
-              <Text style={styles.textStyle}>Cancelar</Text>
-            </Pressable>
+          </View>
+
+          <View style={styles.dataContainer}>
+            <View style={styles.card}>
+              <Text style={styles.cardTitle}>Total de Atividades</Text>
+              <Text style={styles.cardValue}>{dashboardData.totalAtividades}</Text>
+            </View>
+
+            <View style={styles.card}>
+              <Text style={styles.cardTitle}>Projetos Criados</Text>
+              <Text style={styles.cardValue}>{dashboardData.projetosCriados}</Text>
+            </View>
+
+            <View style={styles.card}>
+              <Text style={styles.cardTitle}>Projetos Alocados</Text>
+              <Text style={styles.cardValue}>{dashboardData.projetosAlocados}</Text>
+            </View>
+
+            <View style={styles.card}>
+              <Text style={styles.cardTitle}>Projetos Concluídos</Text>
+              <Text style={styles.cardValue}>{dashboardData.projetosConcluidos}</Text>
+            </View>
+
+            <View style={styles.card}>
+              <Text style={styles.cardTitle}>Atividades em Andamento</Text>
+              <Text style={styles.cardValue}>{dashboardData.atividadesAndamento}</Text>
+            </View>
+          </View>
+
+          <View style={styles.atividadesContainer}>
+            <Text style={styles.atividadesTitle}>Atividades do Projeto {selectedProjeto ? selectedProjeto.nome : ''}</Text>
+            {activities.map((atividade) => (
+              <View key={atividade.id} style={styles.atividadeCard}>
+                <Text style={styles.atividadeTitle}>{atividade.nome}</Text>
+              </View>
+            ))}
           </View>
         </View>
-      </Modal>
-    </ScrollView>
+        <Modal
+          animationType="slide"
+          transparent={true}
+          visible={modalVisible}
+          onRequestClose={() => {
+            setModalVisible(!modalVisible);
+          }}
+        >
+          <View style={styles.centeredView}>
+            <View style={styles.modalView}>
+              <Text style={styles.modalTitle}>Selecione um Projeto</Text>
+              <FlatList
+                data={projetos}
+                keyExtractor={(item) => item.id.toString()}
+                renderItem={({ item }) => (
+                  <TouchableOpacity
+                    onPress={() => {
+                      handleProjetoSelect(item);
+                      setModalVisible(!modalVisible);
+                    }}
+                    style={styles.projetoModalContainer}
+                  >
+                    <Text style={styles.projetoModalTitle}>{item.nome}</Text>
+                  </TouchableOpacity>
+                )}
+              />
+              <Pressable
+                style={[styles.button, styles.buttonClose]}
+                onPress={() => setModalVisible(!modalVisible)}
+              >
+                <Text style={styles.textStyle}>Cancelar</Text>
+              </Pressable>
+            </View>
+          </View>
+        </Modal>
+      </ScrollView>
+      <TabMenu />
+    </>
   );
 };
 
@@ -240,6 +244,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f0f0f0',
+    paddingTop: 40,
   },
   loadingContainer: {
     flex: 1,

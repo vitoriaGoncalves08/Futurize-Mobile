@@ -13,6 +13,7 @@ import { FontAwesome } from '@expo/vector-icons';
 
 import api from './configs/api';
 import { useAuth } from './configs/AuthContext';
+import TabMenu from '../components/TabMenu';
 
 const Atividades = ({ navigation }) => {
   const [atividades, setAtividades] = useState([]);
@@ -108,6 +109,7 @@ const Atividades = ({ navigation }) => {
           </View>
         </View>
       </Modal>
+      <TabMenu/>
     </View>
   );
 };
@@ -116,6 +118,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f5f5f5',
+    paddingTop: 40,
   },
   // Header Styles
   header: {

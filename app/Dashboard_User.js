@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
+import TabMenu from '../components/TabMenu';
 
 const Dashboard_User = () => {
   const navigation = useNavigation();
@@ -67,6 +68,7 @@ const Dashboard_User = () => {
   const maxBarValue = Math.max(...barData.map(item => item.value), 1); // Evita divisão por zero
 
   return (
+    <>
     <ScrollView style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity onPress={handleGoHome}>
@@ -162,6 +164,8 @@ const Dashboard_User = () => {
         </>
       )}
     </ScrollView>
+    <TabMenu/>
+    </>
   );
 };
 
@@ -169,7 +173,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f8f8f8',
-    marginTop: 30,
+    paddingTop: 40,
   },
   header: {
     flexDirection: 'row',

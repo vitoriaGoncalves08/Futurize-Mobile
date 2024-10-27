@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Modal, FlatList, Pressable, ActivityIndicator } from 'react-native';
 import api from './configs/api'; // Ajuste o caminho conforme necessário
 import { useNavigation } from '@react-navigation/native';
+import TabMenu from '../components/TabMenu';
 
 const Tarefas = () => {
   const navigation = useNavigation();
@@ -58,6 +59,7 @@ const Tarefas = () => {
   }
 
   return (
+    <>
     <ScrollView style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}> 
@@ -119,13 +121,15 @@ const Tarefas = () => {
         </View>
       </Modal>
     </ScrollView>
+    <TabMenu/>
+    </>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
+    paddingTop: 40,
     backgroundColor: '#f5f5f5',
   },
   loadingContainer: {
