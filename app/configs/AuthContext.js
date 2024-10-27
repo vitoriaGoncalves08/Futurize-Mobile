@@ -1,28 +1,28 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import api from './api'; // Certifique-se de que o caminho está correto
 import { useNavigation } from '@react-navigation/native';
-import { Alert } from 'react-native';
+import api from './api';
 
-// Criação do contexto de autenticação
 export const AuthContext = createContext({});
 
-// Hook para facilitar o acesso ao contexto
-export const useAuth = () => {
-  return useContext(AuthContext);
-};
+export const useAuth = () => useContext(AuthContext);
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const navigation = useNavigation();
+  const [userLogadoId, setUserLogadoId] = useState(null);
 
   useEffect(() => {
     const getUserToken = async () => {
       try {
         const userToken = await AsyncStorage.getItem('@user');
         if (userToken) {
-          setUser(JSON.parse(userToken)); // Define o usuário logado
+          const userData = JSON.parse(userToken);
+          setUser(userData); 
+          setUserLogadoId(userData.id);
+          console.log("Usuário id carregado do AsyncStorage:", userData.id);
         } else {
+          console.log("Nenhum token de usuário encontrado, redirecionando para login");
           navigation.navigate('Login');
         }
       } catch (error) {
@@ -32,42 +32,42 @@ export const AuthProvider = ({ children }) => {
     getUserToken();
   }, [navigation]);
 
-  // Função de login
   const signIn = async (email, senha) => {
     try {
-      // Realiza a requisição de login
+      // Faz o login e obtém o token JWT
       const response = await api.post('/login', { email, senha });
       const token = response.data.tokenJWT;
-  
+
       if (!token) {
         throw new Error('Token não retornado pela API.');
       }
-  
-      // Busca o usuário completo pelo email
+
+      // Salva o token no AsyncStorage
+      await AsyncStorage.setItem('@tokenJWT', token);
+
+      // Faz a requisição para buscar o usuário, incluindo o token no cabeçalho
       const userResponse = await api.get(`/Usuario/buscar/${email}`);
       const userData = userResponse.data;
-  
-      // Armazena o token e os dados completos do usuário no AsyncStorage
-      await AsyncStorage.setItem('@tokenJWT', token);
+
+      // Salva os dados do usuário no AsyncStorage
       await AsyncStorage.setItem('@user', JSON.stringify(userData));
-  
-      // Define o usuário no estado
+
+      // Define o novo usuário logado no estado
       setUser(userData);
-      Alert.alert('Sucesso', 'Login realizado com sucesso!');
-      console.log("Usuário logado:", userData);
-  
-      // Redireciona para a Home após login
-      navigation.navigate('Home'); 
+      setUserLogadoId(userData.id);
+      console.log("Novo usuário logado:", userData);
+
+      // Navega para a Home após o login
+      navigation.navigate('Home');
     } catch (error) {
       console.error('Erro no login:', error.response?.data || error.message);
     }
   };
-  
-
 
   const signout = async () => {
     try {
       setUser(null);
+      setUserLogadoId(null);
       await AsyncStorage.removeItem('@tokenJWT');
       await AsyncStorage.removeItem('@user');
       navigation.navigate('Login');
@@ -77,7 +77,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, signed: !!user, signIn, signout }}>
+    <AuthContext.Provider value={{ user, signed: !!user, signIn, signout, userLogadoId }}>
       {children}
     </AuthContext.Provider>
   );

@@ -12,9 +12,17 @@ import Home from './app/Home';
 import Dashboard from './app/Dashboard';
 import Dashboard_User from './app/Dashboard_User';
 import Tarefas from './app/Tarefas';
+import { useNavigation } from '@react-navigation/native';
 
 import api from './app/configs/api';
 import { useAuth } from './app/configs/AuthContext';
+const navigation = useNavigation();
+const [userLogadoId, setUserLogadoId] = useState(null);
+
+export const AuthContext = createContext({});
+
+export const useAuth = () => useContext(AuthContext);
+
 const Stack = createNativeStackNavigator();
 
 // Configuração para lidar com notificações no Android e iOS
@@ -46,9 +54,9 @@ const solicitarPermissaoNotificacao = async () => {
 };
 
 // Função para verificar notificações
-const verificarNotificacao = async (atividadeId) => {
+const verificarNotificacao = async (userId) => {
   try {
-    const response = await api.get(`/Atividade/notificacao/${atividadeId}`);
+    const response = await api.get(`/Atividade/notificacao/${userId}`);
   console.log("Resposta da verificação de notificação:", response.data);
     const mensagem = response.data.mensagem;
 
@@ -82,11 +90,11 @@ const App = () => {
       const permissaoConcedida = await solicitarPermissaoNotificacao();
       if (permissaoConcedida) {
         // Substitua pelo ID da atividade para verificar notificações
-        const atividadeId = user.id;
+        const userId = userLogadoId;
 
         // Verifica notificações a cada 15 segundos
         const interval = setInterval(() => {
-          verificarNotificacao(atividadeId);
+          verificarNotificacao(userId);
         }, 15000);
 
         // Limpa o intervalo quando o componente é desmontado

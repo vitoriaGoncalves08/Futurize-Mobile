@@ -1,5 +1,5 @@
 import axios from 'axios';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext,createContext } from 'react';
 import { 
   View, 
   Text, 
@@ -10,20 +10,26 @@ import {
   FlatList 
 } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
-
 import api from './configs/api';
 import { useAuth } from './configs/AuthContext';
 import TabMenu from '../components/TabMenu';
 
+export const AuthContext = createContext({});
+
 const Atividades = ({ navigation }) => {
   const [atividades, setAtividades] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
-  const { user } = useAuth();
+  const { userLogadoId, user } = useAuth(); // Supondo que useAuth retorna userLogadoId e user
 
   useEffect(() => {
+    if (!userLogadoId) {
+      console.log("ID do usuário não está definido.");
+      return;
+    }
+
     const fetchAtividades = async () => {
       try {
-        const response = await api.get('/Atividade/1');
+        const response = await api.get(`/Atividade/1`);
         setAtividades(response.data);
       } catch (error) {
         console.error("Erro ao buscar atividades:", error.message);
@@ -31,7 +37,7 @@ const Atividades = ({ navigation }) => {
     };
 
     fetchAtividades();
-  }, []);
+  }, [userLogadoId]);
 
   return (
     <View style={styles.container}>
@@ -68,9 +74,6 @@ const Atividades = ({ navigation }) => {
         keyExtractor={item => item.id.toString()}
         renderItem={({item}) => (
           <View style={styles.taskItem}>
-            <TouchableOpacity style={styles.checkbox}>
-              {/* You can add a checkbox component here */}
-            </TouchableOpacity>
             <View style={styles.taskInfo}>
               <Text style={styles.taskTitle}>{item.titulo}</Text>
               <Text style={styles.taskDetails}>
