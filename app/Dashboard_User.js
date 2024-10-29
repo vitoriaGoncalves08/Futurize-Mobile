@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Dimensions } from 'react-native';
-import axios from 'axios';
-import { BarChart, PieChart } from 'react-native-chart-kit';
+import api from './configs/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { BarChart, PieChart } from 'react-native-chart-kit';
 import TabMenu from '../components/TabMenu';
 
 const screenWidth = Dimensions.get('window').width;
@@ -16,62 +16,63 @@ const DashboardUser = () => {
   const [atividadesAndamento, setAtividadesAndamento] = useState(0);
   const colors = ['#407BFF', '#79A2FE', '#48beff', '#9FBDFF', '#73d2de', '#a1cdf4', '#60b2e5', '#457eac'];
 
+  // Definindo chartConfig dentro do componente
+  const chartConfig = {
+    backgroundGradientFrom: "#f5f5f5",
+    backgroundGradientTo: "#f5f5f5",
+    color: (opacity = 1) => `rgba(0, 123, 255, ${opacity})`,
+    barPercentage: 0.8, // Aumenta a largura das barras
+    decimalPlaces: 0, // Remove casas decimais
+    labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`, // Cor dos rótulos
+    propsForBackgroundLines: {
+      strokeWidth: 0, // Remove as linhas de fundo
+    },
+    propsForVerticalLabels: {
+      fontSize: 12, // Tamanho da fonte das etiquetas no eixo X
+    },
+  };
+
   useEffect(() => {
     const fetchData = async () => {
       try {
         const token = await AsyncStorage.getItem('@tokenJWT');
         const userId = JSON.parse(await AsyncStorage.getItem('@user')).id;
+        const headers = { Authorization: `Bearer ${token}` };
 
         // Atividades Concluídas por Projeto
-        const responseAtividadesConcluidasPProjeto = await axios.get(
-          `http://localhost:8080/dashboard/atividades-concluidas-por-projeto/${userId}`, {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        );
-
+        const responseAtividadesConcluidasPProjeto = await api.get(`/dashboard/atividades-concluidas-por-projeto/${userId}`, { headers });
         const transformedAtividadesConcluidas = responseAtividadesConcluidasPProjeto.data.map((item, index) => ({
           id: index,
           label: item[0],
           value: item[1],
         }));
-
         setAtividadesConcluidasPProjeto(transformedAtividadesConcluidas);
 
         // Minhas Atividades
-        const responseMinhasAtividades = await api.get(`/dashboard/atividades/${userId}`)
+        const responseMinhasAtividades = await api.get(`/dashboard/atividades/${userId}`, { headers });
         const transformedMinhasAtividades = responseMinhasAtividades.data.map((item, index) => ({
           id: index,
           label: item[0],
           value: item[1],
         }));
-
         setMinhasAtividades(transformedMinhasAtividades);
 
-        // Outros dados de projetos
-        const responseProjetosCriados = await api.get(`/dashboard/projetos-criados/${userLogadoId}`);
+        // Projetos Criados
+        const responseProjetosCriados = await api.get(`/dashboard/projetos-criados/${userId}`, { headers });
         setProjetosCriados(responseProjetosCriados.data);
-        console.log(projetosCriados);
 
-        const responseProjetosAlocados = await axios.get(
-          `http://localhost:8080/dashboard/projetos-alocados/${userId}`, {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        );
+        // Projetos Alocados
+        const responseProjetosAlocados = await api.get(`/dashboard/projetos-alocados/${userId}`, { headers });
         setProjetosAlocados(responseProjetosAlocados.data);
 
-        const responseProjetosConcluidos = await axios.get(
-          `http://localhost:8080/dashboard/projetos-concluidos/${userId}`, {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        );
+        // Projetos Concluídos
+        const responseProjetosConcluidos = await api.get(`/dashboard/projetos-concluidos/${userId}`, { headers });
         setProjetosConcluidos(responseProjetosConcluidos.data);
 
-        const responseAtividadesAndamento = await axios.get(
-          `http://localhost:8080/dashboard/atividades-andamento/${userId}`, {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        );
+        // Atividades em Andamento
+        const responseAtividadesAndamento = await api.get(`/dashboard/atividades-andamento/${userId}`, { headers });
         setAtividadesAndamento(responseAtividadesAndamento.data);
+
       } catch (error) {
         console.error('Erro ao buscar dados da dashboard', error);
       }
@@ -94,15 +95,17 @@ const DashboardUser = () => {
             datasets: [
               {
                 data: atividadesConcluidasPProjeto.map(item => item.value),
-                colors: atividadesConcluidasPProjeto.map((_, index) => colors[index % colors.length]),
               },
             ],
           }}
-          width={screenWidth - 30}
-          height={220}
-          yAxisLabel=""
+          width={screenWidth - 45}
+          height={320}
+          fromZero={true} // Inicia o eixo Y do zero
+          showValuesOnTopOfBars={true} // Mostra os valores no topo das barras
+          withInnerLines={false} // Remove as linhas internas
+          withHorizontalLabels={false} // Remove os rótulos do eixo Y
           chartConfig={chartConfig}
-          verticalLabelRotation={30}
+          verticalLabelRotation={20}
         />
       </View>
 
@@ -115,10 +118,10 @@ const DashboardUser = () => {
             population: item.value,
             color: colors[index % colors.length],
             legendFontColor: '#7F7F7F',
-            legendFontSize: 15,
+            legendFontSize: 10,
           }))}
           width={screenWidth - 30}
-          height={220}
+          height={250}
           chartConfig={chartConfig}
           accessor="population"
           backgroundColor="transparent"
@@ -152,19 +155,12 @@ const DashboardUser = () => {
   );
 };
 
-const chartConfig = {
-  backgroundGradientFrom: "#f5f5f5",
-  backgroundGradientTo: "#f5f5f5",
-  color: (opacity = 1) => `rgba(0, 123, 255, ${opacity})`,
-  barPercentage: 0.5,
-};
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
     padding: 15,
-    marginTop:45
+    marginTop: 45
   },
   title: {
     fontSize: 24,

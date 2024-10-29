@@ -106,7 +106,7 @@ const Atividades = ({ navigation }) => {
           </View>
         </View>
       </View>
-      <Text style={styles.sectionTitle}>Listagem de todas as suas atividades</Text>
+      <Text style={styles.sectionTitle}>Pesquise por todas as suas atividades</Text>
 
       {/* Seção de Filtros */}
       <View style={styles.filterSection}>
