@@ -92,7 +92,7 @@ const AppContent = () => {
         // Limpa o intervalo quando o componente é desmontado
         return () => clearInterval(interval);
       } else {
-        console.warn("userLogadoId ainda está indefinido ou permissões não concedidas.");
+        console.log("userLogadoId ainda está indefinido ou permissões não concedidas.");
       }
     };
 
@@ -100,14 +100,14 @@ const AppContent = () => {
   }, [userLogadoId]);
 
   return (
-    <Stack.Navigator>
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="Splash" component={Splash} />
       <Stack.Screen name="Login" component={Login} />
       <Stack.Screen name="Home" component={Home} />
       <Stack.Screen name="Dashboard" component={Dashboard} />
       <Stack.Screen name="Dashboard_User" component={Dashboard_User} />
       <Stack.Screen name="Tarefas" component={Tarefas} />
       <Stack.Screen name="RecuperarSenha" component={RecuperarSenha} />
-      <Stack.Screen name="Splash" component={Splash} />
     </Stack.Navigator>
   );
 };
