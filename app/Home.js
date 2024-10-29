@@ -10,7 +10,7 @@ import {
   FlatList 
 } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
-
+import Navbar from '../components/Navbar';
 import api from './configs/api';
 import { useAuth } from './configs/AuthContext';
 
@@ -34,7 +34,7 @@ const Atividades = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      {/* Header */}
+        <Navbar />
       <View style={styles.header}>
       <Text style={styles.title}>
          {user ? `Bem-vindo, ${user.nome}!` : 'Usuário não logado'}

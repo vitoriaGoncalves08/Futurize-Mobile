@@ -12,6 +12,7 @@ import Home from './app/Home';
 import Dashboard from './app/Dashboard';
 import Dashboard_User from './app/Dashboard_User';
 import Tarefas from './app/Tarefas';
+import Notifcacoes from './app/Notifcacoes';
 
 import api from './app/configs/api';
 import { useAuth } from './app/configs/AuthContext';
@@ -117,6 +118,7 @@ const App = () => {
           <Stack.Screen name="Tarefas" component={Tarefas} />
           <Stack.Screen name="RecuperarSenha" component={RecuperarSenha} />
           <Stack.Screen name="Splash" component={Splash} />
+          <Stack.Screen name="Notificacoes" component={Notifcacoes} />
         </Stack.Navigator>
       </AuthProvider>
     </NavigationContainer>
