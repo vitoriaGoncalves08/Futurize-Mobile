@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import CheckBox from 'expo-checkbox';
+import Navbar from '../components/Navbar';
 
 const Home = () => {
   const [isChecked, setIsChecked] = useState(false);
@@ -23,6 +24,7 @@ const Home = () => {
 
   return (
     <View style={styles.container}>
+        <Navbar />
       <View style={styles.header}>
         <Text style={styles.title}>Bem Vindo, Maverick</Text>
         <TouchableOpacity style={styles.profileIcon} onPress={() => navigation.navigate("PerfilSettings")}>

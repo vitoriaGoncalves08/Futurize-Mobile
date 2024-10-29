@@ -9,6 +9,7 @@ import Home from './app/Home';
 import Dashboard from './app/Dashboard';
 import CriarConta from './app/CriarConta';
 import PerfilSettings from './app/PerfilSettings';
+import Notificacoes from './app/Notificacoes';
 
 const Stack = createNativeStackNavigator();
 
@@ -54,6 +55,11 @@ export default function App() {
         <Stack.Screen
           name="Dashboard"
           component={Dashboard}
+          options={{ headerShown: false }}
+        />
+         <Stack.Screen
+          name="Notificacoes"
+          component={Notificacoes}
           options={{ headerShown: false }}
         />
 
