@@ -178,7 +178,6 @@ const Atividades = ({ navigation }) => {
           </View>
         )}
       />
-
       <TabMenu />
     </View>
   );
