@@ -1,9 +1,8 @@
 import React, { useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
-import { AuthProvider } from './app/configs/AuthContext';
+import { AuthProvider, useAuth } from './app/configs/AuthContext';
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import * as Notifications from 'expo-notifications';
-import axios from 'axios';
 
 import Splash from './app/Splash';
 import Login from './app/Login';
@@ -12,29 +11,20 @@ import Home from './app/Home';
 import Dashboard from './app/Dashboard';
 import Dashboard_User from './app/Dashboard_User';
 import Tarefas from './app/Tarefas';
-import { useNavigation } from '@react-navigation/native';
 
 import api from './app/configs/api';
-import { useAuth } from './app/configs/AuthContext';
-const navigation = useNavigation();
-const [userLogadoId, setUserLogadoId] = useState(null);
 
-export const AuthContext = createContext({});
-
-export const useAuth = () => useContext(AuthContext);
-
+// Create stack navigator
 const Stack = createNativeStackNavigator();
 
-// Configuração para lidar com notificações no Android e iOS
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
-    shouldShowAlert: true,  // Mostra o alerta na tela
-    shouldPlaySound: true,  // Reproduz o som da notificação
-    shouldSetBadge: true,   // Exibe o ícone na barra de status
+    shouldShowAlert: true,
+    shouldPlaySound: true,
+    shouldSetBadge: true,
   }),
 });
 
-// Função para solicitar permissões de notificação
 const solicitarPermissaoNotificacao = async () => {
   const { status: existingStatus } = await Notifications.getPermissionsAsync();
   let finalStatus = existingStatus;
@@ -53,26 +43,29 @@ const solicitarPermissaoNotificacao = async () => {
   return true;
 };
 
-// Função para verificar notificações
 const verificarNotificacao = async (userId) => {
+  if (!userId) {
+    console.warn("ID de usuário está indefinido, não é possível verificar notificações.");
+    return;
+  }
+
   try {
     const response = await api.get(`/Atividade/notificacao/${userId}`);
-  console.log("Resposta da verificação de notificação:", response.data);
+    console.log("Resposta da verificação de notificação:", response.data);
     const mensagem = response.data.mensagem;
 
     if (mensagem) {
-      console.log("Mensagem recebida do servidor:", mensagem); // Log para depuração
+      console.log("Mensagem recebida do servidor:", mensagem);
 
-      // Exibe a notificação na barra de notificações
       try {
         await Notifications.scheduleNotificationAsync({
           content: {
             title: "Futurize🌐 - Notificação",
             body: mensagem,
             sound: true,
-            priority: Notifications.AndroidNotificationPriority.HIGH, // Prioridade alta para Android
+            priority: Notifications.AndroidNotificationPriority.HIGH,
           },
-          trigger: { seconds: 1 }, // Gatilho de 1 segundo para garantir a exibição
+          trigger: { seconds: 1 },
         });
       } catch (error) {
         console.error("Erro ao agendar a notificação:", error);
@@ -83,51 +76,49 @@ const verificarNotificacao = async (userId) => {
   }
 };
 
-const App = () => {
-  const { user } = useAuth();
+const AppContent = () => {
+  const { userLogadoId } = useAuth(); // Obtém o userLogadoId do contexto de autenticação
+
   useEffect(() => {
     const initNotificacoes = async () => {
       const permissaoConcedida = await solicitarPermissaoNotificacao();
-      if (permissaoConcedida) {
-        // Substitua pelo ID da atividade para verificar notificações
-        const userId = userLogadoId;
 
-        // Verifica notificações a cada 15 segundos
+      if (permissaoConcedida && userLogadoId) {
         const interval = setInterval(() => {
-          verificarNotificacao(userId);
+          console.log("Chamando verificarNotificacao para userLogadoId:", userLogadoId);
+          verificarNotificacao(userLogadoId);
         }, 15000);
 
         // Limpa o intervalo quando o componente é desmontado
         return () => clearInterval(interval);
+      } else {
+        console.warn("userLogadoId ainda está indefinido ou permissões não concedidas.");
       }
     };
 
     initNotificacoes();
-  }, []);
-
-  // Lida com notificações recebidas enquanto o app está em primeiro plano
-  useEffect(() => {
-    const subscription = Notifications.addNotificationReceivedListener(notification => {
-      console.log("Notificação recebida em primeiro plano:", notification);
-    });
-
-    return () => subscription.remove();
-  }, []);
+  }, [userLogadoId]);
 
   return (
-    <NavigationContainer>
-      <AuthProvider>
-        <Stack.Navigator>
-          <Stack.Screen name="Login" component={Login} />
-          <Stack.Screen name="Home" component={Home} />
-          <Stack.Screen name="Dashboard" component={Dashboard} />
-          <Stack.Screen name="Dashboard_User" component={Dashboard_User} />
-          <Stack.Screen name="Tarefas" component={Tarefas} />
-          <Stack.Screen name="RecuperarSenha" component={RecuperarSenha} />
-          <Stack.Screen name="Splash" component={Splash} />
-        </Stack.Navigator>
-      </AuthProvider>
-    </NavigationContainer>
+    <Stack.Navigator>
+      <Stack.Screen name="Login" component={Login} />
+      <Stack.Screen name="Home" component={Home} />
+      <Stack.Screen name="Dashboard" component={Dashboard} />
+      <Stack.Screen name="Dashboard_User" component={Dashboard_User} />
+      <Stack.Screen name="Tarefas" component={Tarefas} />
+      <Stack.Screen name="RecuperarSenha" component={RecuperarSenha} />
+      <Stack.Screen name="Splash" component={Splash} />
+    </Stack.Navigator>
+  );
+};
+
+const App = () => {
+  return (
+    <AuthProvider>
+      <NavigationContainer>
+        <AppContent />
+      </NavigationContainer>
+    </AuthProvider>
   );
 };
 

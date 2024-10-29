@@ -6,7 +6,7 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 // Obter as dimensões da tela
 const { width } = Dimensions.get('window');
 
-const Login = () => {
+const Login = ({ navigation }) => {
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
   const [secureText, setSecureText] = useState(true);
@@ -19,7 +19,8 @@ const Login = () => {
     }
 
     try {
-      await signIn(email, senha);
+      // Passa o objeto de navegação para a função signIn
+      await signIn(email, senha, navigation);
     } catch (error) {
       Alert.alert('Erro', 'Falha ao realizar login. Verifique suas credenciais.');
       console.log('Erro no login:', error);
@@ -76,15 +77,14 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 20,
     textAlign: 'center',
-
   },
   logo: {
     width: width * 0.7,
     height: undefined,
     aspectRatio: 1,
     resizeMode: 'contain',
-    marginTop:-150,
-    marginBottom:-50,
+    marginTop: -150,
+    marginBottom: -50,
   },
   description: {
     fontSize: 16,
