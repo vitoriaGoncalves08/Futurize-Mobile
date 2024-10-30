@@ -151,6 +151,7 @@ const DashboardProjeto = () => {
 
   const renderHeader = () => (
     <>
+     <Text style={styles.description}>Selecione um trabalho</Text>
       {/* Seletor de Projeto */}
       <View style={styles.pickerContainer}>
         <RNPickerSelect
@@ -182,7 +183,7 @@ const DashboardProjeto = () => {
       <View style={styles.gaugeContainer}>
         <Text style={styles.chartTitle}>Atividades Concluídas por Trabalho</Text>
         <AnimatedCircularProgress
-          size={250}
+          size={220}
           width={15}
           fill={porcentagemConcluidas}
           tintColor="#407BFF"
@@ -293,6 +294,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     textAlign: 'center',
     marginVertical: 20,
+    color: '#3E3E3E',
   },
   subtitle: {
     fontSize: 18,
@@ -308,10 +310,13 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   pickerContainer: {
-    marginVertical: 20,
+    marginVertical: 8,
     borderColor: '#407BFF',
     borderWidth: 1,
     borderRadius: 5,
+  },
+  description: {
+    color: '#7F7F7F',
   },
   listItem: {
     backgroundColor: '#FFF',
@@ -322,6 +327,7 @@ const styles = StyleSheet.create({
   listTitle: {
     fontSize: 16,
     fontWeight: 'bold',
+    color: '#3E3E3E',
   },
   listDetails: {
     fontSize: 14,
@@ -353,7 +359,7 @@ const styles = StyleSheet.create({
   },
   summaryTitle: {
     fontSize: 15,
-    color: '#333',
+    color: '#3E3E3E',
     fontWeight: 'bold',
     textAlign: 'center',
     marginBottom: 5
@@ -386,6 +392,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     textAlign: 'center',
     marginBottom: 10,
+    color: '#3E3E3E',
   },
   gaugeText: {
     fontSize: 24,
