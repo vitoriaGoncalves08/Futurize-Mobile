@@ -119,6 +119,7 @@ const DashboardUser = () => {
             color: colors[index % colors.length],
             legendFontColor: '#7F7F7F',
             legendFontSize: 10,
+            legendFontColor: '#3E3E3E',
           }))}
           width={screenWidth - 30}
           height={250}
@@ -193,12 +194,15 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   summaryTitle: {
-    fontSize: 16,
+    fontSize: 15,
     color: '#333',
+    fontWeight: 'bold',
+    textAlign: 'center'
   },
   summaryValue: {
     fontSize: 22,
     fontWeight: 'bold',
+    color: '#407BFF',
   },
 });
 
