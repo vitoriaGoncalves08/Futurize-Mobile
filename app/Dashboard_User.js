@@ -83,75 +83,79 @@ const DashboardUser = () => {
 
   return (
     <>
-    <ScrollView style={styles.container}>
-      <Text style={styles.title}>Minha Dashboard</Text>
+      <ScrollView style={styles.container}>
+        <Text style={styles.title}>Minha Dashboard</Text>
 
-      {/* Gráfico de Barras */}
-      <View style={styles.chartContainer}>
-        <Text style={styles.chartTitle}>Atividades Concluídas por Projeto</Text>
-        <BarChart
-          data={{
-            labels: atividadesConcluidasPProjeto.map(item => item.label),
-            datasets: [
-              {
-                data: atividadesConcluidasPProjeto.map(item => item.value),
-              },
-            ],
-          }}
-          width={screenWidth - 45}
-          height={320}
-          fromZero={true} // Inicia o eixo Y do zero
-          showValuesOnTopOfBars={true} // Mostra os valores no topo das barras
-          withInnerLines={false} // Remove as linhas internas
-          withHorizontalLabels={false} // Remove os rótulos do eixo Y
-          chartConfig={chartConfig}
-          verticalLabelRotation={20}
-        />
-      </View>
+     {/* Dentro do return, na seção do Gráfico de Barras*/}
+        <View style={styles.chartContainer}>
+          <Text style={styles.chartTitle}>Atividades Concluídas por Projeto</Text>
+          {atividadesConcluidasPProjeto.length > 0 ? (
+            <BarChart
+              data={{
+                labels: atividadesConcluidasPProjeto.map(item => item.label),
+                datasets: [
+                  {
+                    data: atividadesConcluidasPProjeto.map(item => item.value),
+                  },
+                ],
+              }}
+              width={screenWidth - 45}
+              height={320}
+              fromZero={true}
+              showValuesOnTopOfBars={true}
+              withInnerLines={false}
+              withHorizontalLabels={false}
+              chartConfig={chartConfig}
+              verticalLabelRotation={20}
+            />
+          ) : (
+            <Text style={styles.noDataText}>Sem atividades concluídas</Text>
+          )}
+        </View>
 
-      {/* Gráfico de Pizza */}
-      <View style={styles.chartContainer}>
-        <Text style={styles.chartTitle}>Minhas Atividades</Text>
-        <PieChart
-          data={minhasAtividades.map((item, index) => ({
-            name: item.label,
-            population: item.value,
-            color: colors[index % colors.length],
-            legendFontColor: '#7F7F7F',
-            legendFontSize: 10,
-            legendFontColor: '#3E3E3E',
-          }))}
-          width={screenWidth - 30}
-          height={250}
-          chartConfig={chartConfig}
-          accessor="population"
-          backgroundColor="transparent"
-          paddingLeft="15"
-          absolute
-        />
-      </View>
+        {/* Gráfico de Pizza */}
+        <View style={styles.chartContainer}>
+          <Text style={styles.chartTitle}>Minhas Atividades</Text>
+          <PieChart
+            data={minhasAtividades.map((item, index) => ({
+              name: item.label,
+              population: item.value,
+              color: colors[index % colors.length],
+              legendFontColor: '#7F7F7F',
+              legendFontSize: 10,
+              legendFontColor: '#3E3E3E',
+            }))}
+            width={screenWidth - 30}
+            height={250}
+            chartConfig={chartConfig}
+            accessor="population"
+            backgroundColor="transparent"
+            paddingLeft="15"
+            absolute
+          />
+        </View>
 
-      {/* Resumo de Projetos */}
-      <View style={styles.summaryContainer}>
-        <View style={styles.summaryBox}>
-          <Text style={styles.summaryTitle}>Trabalhos Criados</Text>
-          <Text style={styles.summaryValue}>{projetosCriados}</Text>
+        {/* Resumo de Projetos */}
+        <View style={styles.summaryContainer}>
+          <View style={styles.summaryBox}>
+            <Text style={styles.summaryTitle}>Trabalhos Criados</Text>
+            <Text style={styles.summaryValue}>{projetosCriados}</Text>
+          </View>
+          <View style={styles.summaryBox}>
+            <Text style={styles.summaryTitle}>Trabalhos Alocados</Text>
+            <Text style={styles.summaryValue}>{projetosAlocados}</Text>
+          </View>
+          <View style={styles.summaryBox}>
+            <Text style={styles.summaryTitle}>Trabalhos Concluídos</Text>
+            <Text style={styles.summaryValue}>{projetosConcluidos}</Text>
+          </View>
+          <View style={styles.summaryBox}>
+            <Text style={styles.summaryTitle}>Atividades em Andamento</Text>
+            <Text style={styles.summaryValue}>{atividadesAndamento}</Text>
+          </View>
         </View>
-        <View style={styles.summaryBox}>
-          <Text style={styles.summaryTitle}>Trabalhos Alocados</Text>
-          <Text style={styles.summaryValue}>{projetosAlocados}</Text>
-        </View>
-        <View style={styles.summaryBox}>
-          <Text style={styles.summaryTitle}>Trabalhos Concluídos</Text>
-          <Text style={styles.summaryValue}>{projetosConcluidos}</Text>
-        </View>
-        <View style={styles.summaryBox}>
-          <Text style={styles.summaryTitle}>Atividades em Andamento</Text>
-          <Text style={styles.summaryValue}>{atividadesAndamento}</Text>
-        </View>
-      </View>
-    </ScrollView>
-    <TabMenu />
+      </ScrollView>
+      <TabMenu />
     </>
   );
 };
