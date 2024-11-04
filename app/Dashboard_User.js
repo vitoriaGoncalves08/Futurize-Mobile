@@ -88,7 +88,7 @@ const DashboardUser = () => {
 
      {/* Dentro do return, na seção do Gráfico de Barras*/}
         <View style={styles.chartContainer}>
-          <Text style={styles.chartTitle}>Atividades Concluídas por Projeto</Text>
+          <Text style={styles.chartTitle}>Atividades Concluídas por Trabalho</Text>
           {atividadesConcluidasPProjeto.length > 0 ? (
             <BarChart
               data={{
