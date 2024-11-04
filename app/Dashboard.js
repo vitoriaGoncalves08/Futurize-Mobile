@@ -203,7 +203,7 @@ const DashboardProjeto = () => {
 
       {/* Gráfico de Pizza */}
       <View style={styles.chartContainer}>
-        <Text style={styles.chartTitle}>Minhas Atividades</Text>
+        <Text style={styles.chartTitle}>Total Atividades</Text>
         <PieChart
           data={minhasAtividades.map((item, index) => ({
             name: item.label,

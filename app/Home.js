@@ -30,13 +30,13 @@ const Atividades = ({ navigation }) => {
 
     const fetchAtividades = async () => {
       try {
-        const response = await api.get(`/Atividade/${userLogadoId}`);
+        const response = await api.get(`/Atividade/todas/${userLogadoId}`);
+        console.log("Response data:", response.data); // Registre a resposta diretamente
         setAtividades(response.data);
-        console.log("HOME", userLogadoId);
       } catch (error) {
         console.error("Erro ao buscar atividades:", error.message);
       }
-    };
+    };    
 
     fetchAtividades();
   }, [userLogadoId]);
@@ -65,6 +65,7 @@ const Atividades = ({ navigation }) => {
   // Abre o modal de filtro de dificuldade
   const openFilterModal = () => {
     setFilterModalVisible(true);
+    console.log(filteredAtividades);
   };
 
   // Fecha o modal de filtro de dificuldade
