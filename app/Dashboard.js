@@ -1,282 +1,410 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
+import React, { useEffect, useState } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  FlatList,
+  ActivityIndicator,
+  Dimensions
+} from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import TabMenu from '../components/TabMenu';
+import api from './configs/api';
+import RNPickerSelect from 'react-native-picker-select';
+import { PieChart } from 'react-native-chart-kit';
+import { AnimatedCircularProgress } from 'react-native-circular-progress';
 
-const Dashboard = () => {
-  const navigation = useNavigation();
-  const [tasks, setTasks] = useState([
-    {
-      type: 'Tarefa',
-      description: 'Descrição da Tarefa',
-      due: 'Hoje, 6:20pm',
-      completed: false,
+const screenWidth = Dimensions.get('window').width;
+
+const DashboardProjeto = () => {
+  const [projetos, setProjetos] = useState([]);
+  const [projetoSelecionado, setProjetoSelecionado] = useState('');
+  const [listagemAtividades, setListagemAtividades] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const [minhasAtividades, setMinhasAtividades] = useState([]);
+  const [aConcluidasPProjeto, setAConcluidasPProjeto] = useState([]);
+
+  const [aNaoIniciada, setANaoIniciada] = useState(0);
+  const [aConcluir, setAConcluir] = useState(0);
+  const [aRefeitas, setARefeitas] = useState(0);
+  const [integrantes, setIntegrantes] = useState(0);
+
+  const colors = ['#407BFF', '#79A2FE', '#48beff', '#9FBDFF', '#73d2de', '#a1cdf4', '#60b2e5', '#457eac'];
+
+  const chartConfig = {
+    backgroundGradientFrom: "#f5f5f5",
+    backgroundGradientTo: "#f5f5f5",
+    color: (opacity = 1) => `rgba(0, 123, 255, ${opacity})`,
+    barPercentage: 0.8,
+    decimalPlaces: 0,
+    labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
+    propsForBackgroundLines: {
+      strokeWidth: 0,
     },
-    {
-      type: 'Tarefa',
-      description: 'Descrição da Tarefa',
-      due: 'Hoje, 6:20pm',
-      completed: false,
+    propsForVerticalLabels: {
+      fontSize: 12,
     },
-  ]);
-
-  /*const handleTaskCompletion = (index) => {
-    const updatedTasks = [...tasks];
-    updatedTasks[index].completed = !updatedTasks[index].completed;
-    setTasks(updatedTasks);
-  };*/
-
- /*const handleTaskCompletion = (index) => {
-    const updatedTasks = [...tasks];
-    updatedTasks[index].completed = !updatedTasks[index].completed;
-    setTasks(updatedTasks);
-  };*/
-
-const handleGoHome = () => {
-    navigation.navigate('Home'); // Navega para a tela "Home"
   };
 
-  return (
-    <ScrollView style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.navigate('Home')}> 
-          <MaterialCommunityIcons name="arrow-left" size={24} color="black" />
-        </TouchableOpacity>
-        <Text style={styles.title}>Dashboard</Text>
+  useEffect(() => {
+    const fetchProjetos = async () => {
+      try {
+        const token = await AsyncStorage.getItem('@tokenJWT');
+        const user = await AsyncStorage.getItem('@user');
+        const userId = JSON.parse(user).id;
+
+        const headers = {
+          Authorization: `Bearer ${token}`,
+        };
+
+        const response = await api.get(`/Projeto/porUsuario/${userId}`, { headers });
+        const data = response.data;
+
+        setProjetos(data);
+
+        if (data.length > 0) {
+          setProjetoSelecionado(data[0].id);
+        }
+      } catch (error) {
+        console.error("Erro ao buscar projetos:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProjetos();
+  }, []);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      if (!projetoSelecionado) return;
+
+      try {
+        const token = await AsyncStorage.getItem('@tokenJWT');
+        const userId = JSON.parse(await AsyncStorage.getItem('@user')).id;
+        const headers = { Authorization: `Bearer ${token}` };
+
+        // Redefine o estado para evitar dados do projeto anterior
+        setIntegrantes('');
+
+        // Listagem de atividades
+        const responseListagem = await api.get(`/dashboard-projeto/listagem-das-atividades-por-projeto/${userId}/${projetoSelecionado}`);
+        setListagemAtividades(responseListagem.data);
+
+        // Projetos não iniciados
+        const responseNiniciados = await api.get(`/dashboard-projeto/total-atividades-nao-iniciadas-por-projeto/${userId}/${projetoSelecionado}`, { headers });
+        setANaoIniciada(responseNiniciados.data);
+
+        // Projetos não concluídos
+        const responseNconcluidos = await api.get(`/dashboard-projeto/total-atividades-nao-concluidas/${userId}/${projetoSelecionado}`, { headers });
+        setAConcluir(responseNconcluidos.data);
+
+        // Projetos refeitas
+        const responseRefeitas = await api.get(`/dashboard-projeto/total-atividades-refeitas/${userId}/${projetoSelecionado}`, { headers });
+        setARefeitas(responseRefeitas.data);
+
+        // Integrantes com mais entregas
+        const responseIntegrantes = await api.get(`/dashboard-projeto/usuario-mais-atividades-concluidas/${userId}/${projetoSelecionado}`, { headers });
+        if (Array.isArray(responseIntegrantes.data) && responseIntegrantes.data.length > 0) {
+          setIntegrantes(responseIntegrantes.data[0][2]);
+        } else {
+          setIntegrantes('Sem entregas');
+        }
+
+        // Todas as atividades
+        const responseTodas = await api.get(`/dashboard-projeto/total-atividades-por-projeto/${userId}/${projetoSelecionado}`, { headers });
+        const transformedTodas = responseTodas.data.map((item, index) => ({
+          id: index,
+          label: item[1],
+          value: item[0],
+        }));
+        setMinhasAtividades(transformedTodas);
+
+        // Atividades Concluídas por Projeto
+        const responseConcluidasPProjeto = await api.get(`/dashboard-projeto/atividades-concluidas-por-projeto/${userId}/${projetoSelecionado}`, { headers });
+
+        const data = responseConcluidasPProjeto.data;
+        if (data.length > 0) {
+          const transformedAConcluidasPProjeto = {
+            concluidas: data[0][0],
+            total: data[0][1],
+          };
+          setAConcluidasPProjeto(transformedAConcluidasPProjeto);
+        }
+
+      } catch (error) {
+        console.log('Erro ao buscar dados da dashboard', error);
+      }
+    };
+
+    fetchData();
+  }, [projetoSelecionado]);
+
+  const handleProjetoChange = (itemValue) => {
+    setProjetoSelecionado(itemValue);
+  };
+
+  const porcentagemConcluidas = (aConcluidasPProjeto.total > 0)
+    ? parseFloat(((aConcluidasPProjeto.concluidas / aConcluidasPProjeto.total) * 100).toFixed(2))
+    : 0;
+
+  const renderHeader = () => (
+    <>
+     <Text style={styles.description}>Selecione um trabalho</Text>
+      {/* Seletor de Projeto */}
+      <View style={styles.pickerContainer}>
+        <RNPickerSelect
+          onValueChange={handleProjetoChange}
+          items={projetos.map(projeto => ({
+            label: projeto.titulo,
+            value: projeto.id,
+          }))}
+          value={projetoSelecionado}
+          style={{
+            inputAndroid: {
+              padding: 10,
+              borderWidth: 1,
+              borderColor: '#407BFF',
+              borderRadius: 5,
+            },
+            inputIOS: {
+              padding: 10,
+              borderWidth: 1,
+              borderColor: '#407BFF',
+              borderRadius: 5,
+            },
+          }}
+          placeholder={{ label: "Selecione um projeto", value: 0 }}
+        />
       </View>
+
+      {/* Gráfico de Gauge */}
+      <View style={styles.gaugeContainer}>
+        <Text style={styles.chartTitle}>Atividades Concluídas por Trabalho</Text>
+        <AnimatedCircularProgress
+          size={220}
+          width={15}
+          fill={porcentagemConcluidas}
+          tintColor="#407BFF"
+          backgroundColor="#e6e6e6"
+          rotation={180}
+          lineCap="round"
+        >
+          {() => (
+            <Text style={styles.gaugeText}>
+              {aConcluidasPProjeto.concluidas} / {aConcluidasPProjeto.total}
+            </Text>
+          )}
+        </AnimatedCircularProgress>
+
+        <Text style={styles.percentageText}>{porcentagemConcluidas}%</Text>
+      </View>
+
+      {/* Gráfico de Pizza */}
+      <View style={styles.chartContainer}>
+        <Text style={styles.chartTitle}>Total Atividades</Text>
+        <PieChart
+          data={minhasAtividades.map((item, index) => ({
+            name: item.label,
+            population: item.value,
+            color: colors[index % colors.length],
+            legendFontColor: '#7F7F7F',
+            legendFontSize: 10,
+          }))}
+          width={screenWidth - 30}
+          height={250}
+          chartConfig={chartConfig}
+          accessor="population"
+          backgroundColor="transparent"
+          paddingLeft="15"
+          absolute
+        />
+      </View>
+
+      {/* Resumo de Projetos */}
       <View style={styles.summaryContainer}>
-        <Text style={styles.summaryText}>Abaixo está um resumo do seu dia.</Text>
-        <View style={styles.summaryItemContainer}>
-          <View style={styles.summaryItem}>
-            <Text style={styles.summaryItemNumber}>16</Text>
-            <Text style={styles.summaryItemLabel}>Adicionadas</Text>
-          </View>
-          <View style={styles.summaryItem}>
-            <Text style={styles.summaryItemNumber}>16</Text>
-            <Text style={styles.summaryItemLabel}>Em trabalho</Text>
-          </View>
-          <View style={styles.summaryItem}>
-            <Text style={styles.summaryItemNumber}>16</Text>
-            <Text style={styles.summaryItemLabel}>Concluídas</Text>
-          </View>
+        <View style={styles.summaryBox}>
+          <Text style={styles.summaryTitle}>Atividades não iniciadas</Text>
+          <Text style={styles.summaryValue}>{aNaoIniciada}</Text>
+        </View>
+        <View style={styles.summaryBox}>
+          <Text style={styles.summaryTitle}>Atividades para concluir</Text>
+          <Text style={styles.summaryValue}>{aConcluir}</Text>
+        </View>
+        <View style={styles.summaryBox}>
+          <Text style={styles.summaryTitle}>Atividades refeitas</Text>
+          <Text style={styles.summaryValue}>{aRefeitas}</Text>
+        </View>
+        <View style={styles.summaryBox}>
+          <Text style={styles.summaryTitle}>Integrante com mais entregas</Text>
+          <Text style={styles.summaryValue}>{integrantes}</Text>
         </View>
       </View>
-      <View style={styles.progressContainer}>
-        <Text style={styles.progressTitle}>Progresso Atual</Text>
-        <View style={styles.progressItems}>
-          <Text style={styles.progressItemNumber}>15/26</Text>
-          <Text style={styles.progressItemLabel}>Progresso Atual</Text>
-          <Text style={styles.progressItemNumber}>12</Text>
-          <Text style={styles.progressItemLabel}>Tarefas à concluir</Text>
+
+      <Text style={styles.subtitle}>Retrabalho por atividade</Text>
+    </>
+  );
+
+  return (
+    <View style={styles.container}>
+      <Text style={styles.title}>Dashboard por Trabalho</Text>
+
+      {loading ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#407BFF" />
         </View>
-      </View>
-      <View style={styles.tasksContainer}>
-        <Text style={styles.tasksTitle}>Tarefas Atuais</Text>
-        <Text style={styles.tasksSubtitle}>Um resumo de suas tarefas</Text>
-        <ScrollView>
-          {tasks.map((task, index) => (
-            <TouchableOpacity
-              key={index}
-              style={styles.taskItem}
-              onPress={() => handleTaskCompletion(index)}
-            >
-              <View style={styles.taskDetails}>
-                <Text style={styles.taskType}>{task.type}</Text>
-                <Text style={styles.taskDescription}>{task.description}</Text>
-                <Text style={styles.taskDue}>{task.due}</Text>
-              </View>
-              <View style={styles.taskStatus}>
-                {task.completed ? (
-                  <MaterialCommunityIcons name="check-circle" size={24} color="green" />
-                ) : (
-                  <MaterialCommunityIcons name="circle-outline" size={24} color="gray" />
-                )}
-                <Text style={styles.taskStatusText}>Atualização</Text>
-              </View>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
-      </View>
-
-
-
-   <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Atividade Recente</Text>
-        <View style={styles.activityChart}>
-          {/* Adicione um gráfico de linha ou gráfico de barras aqui
-            usando uma biblioteca de gráficos como 'react-native-chart-kit' */}
-        </View>
-        <View style={styles.activityLegend}>
-          <View style={styles.legendItem}>
-            <View style={styles.legendCircle} />
-            <Text style={styles.legendText}>Tarefas</Text>
-          </View>
-          <View style={styles.legendItem}>
-            <View style={[styles.legendCircle, { backgroundColor: '#00C851' }]} />
-            <Text style={styles.legendText}>Concluído</Text>
-          </View>
-          <View style={styles.legendItem}>
-            <View style={[styles.legendCircle, { backgroundColor: '#FFC107' }]} />
-            <Text style={styles.legendText}>Trabalhando</Text>
-          </View>
-        </View>
- </View>
-
-    </ScrollView>
+      ) : (
+        <FlatList
+          data={listagemAtividades}
+          keyExtractor={(item) => item[0]?.id.toString()}
+          ListHeaderComponent={renderHeader}
+          renderItem={({ item }) => (
+            <View style={styles.listItem}>
+              <Text style={styles.listTitle}>{item[0]?.titulo}</Text>
+              <Text style={styles.listDetails}>
+                Responsável: {item[0]?.responsavel.nome} | Refeita {item[0]?.quantidade_retrabalho}x
+              </Text>
+            </View>
+          )}
+          ListEmptyComponent={() => (
+            <Text style={styles.emptyMessage}>Nenhuma atividade encontrada.</Text>
+          )}
+          contentContainerStyle={{ flexGrow: 1 }}
+        />
+      )}
+      <TabMenu />
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f8f8',
-    marginTop: 30
+    backgroundColor: '#F8F8F8',
+    marginTop: 45,
+    padding: 10,
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 16,
-    backgroundColor: '#fff',
+  contentContainer: {
+    flex: 1,
+    padding: 15,
   },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    marginLeft: 16,
+    textAlign: 'center',
+    marginVertical: 20,
+    color: '#3E3E3E',
+  },
+  subtitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginVertical: 20,
+    color: '#407BFF',
+  },
+  chartContainer: {
+    marginBottom: 20,
+    backgroundColor: '#e6e6e6',
+    padding: 10,
+    borderRadius: 8,
+  },
+  pickerContainer: {
+    marginVertical: 8,
+    borderColor: '#407BFF',
+    borderWidth: 1,
+    borderRadius: 5,
+  },
+  description: {
+    color: '#7F7F7F',
+  },
+  listItem: {
+    backgroundColor: '#FFF',
+    padding: 15,
+    marginVertical: 5,
+    borderRadius: 8,
+  },
+  listTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#3E3E3E',
+  },
+  listDetails: {
+    fontSize: 14,
+    color: '#7F7F7F',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  emptyMessage: {
+    textAlign: 'center',
+    marginTop: 20,
+    fontSize: 16,
+    color: '#7F7F7F',
   },
   summaryContainer: {
-    padding: 16,
-    backgroundColor: '#fff',
-    marginBottom: 16,
-  },
-  summaryText: {
-    fontSize: 16,
-    marginBottom: 16,
-  },
-  summaryItemContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
   },
-  summaryItem: {
-    alignItems: 'center',
-  },
-  summaryItemNumber: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 8,
-  },
-  summaryItemLabel: {
-    fontSize: 14,
-  },
-  progressContainer: {
-    padding: 16,
-    backgroundColor: '#fff',
-    marginBottom: 16,
-  },
-  progressTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 16,
-  },
-  progressItems: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-  },
-  progressItemNumber: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 8,
-  },
-  progressItemLabel: {
-    fontSize: 14,
-  },
-  tasksContainer: {
-    padding: 16,
-    backgroundColor: '#fff',
-    marginBottom: 16,
-  },
-  tasksTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 16,
-  },
-  tasksSubtitle: {
-    fontSize: 14,
-    marginBottom: 16,
-  },
-
-  taskItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 16,
-    marginBottom: 8,
-    backgroundColor: '#fff',
-    borderRadius: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  taskDetails: {
-    flex: 1,
-  },
-  taskType: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginBottom: 4,
-  },
-  taskDescription: {
-    fontSize: 14,
-    marginBottom: 4,
-  },
-  taskDue: {
-    fontSize: 12,
-  },
-  taskStatus: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginLeft: 16,
-  },
-  taskStatusText: {
-    fontSize: 14,
-    marginLeft: 8,
-  },
-section: {
-    marginBottom: 20,
-    backgroundColor: '#fff',
+  summaryBox: {
+    width: '48%',
+    backgroundColor: '#e6e6e6',
     padding: 15,
     borderRadius: 8,
+    alignItems: 'center',
+    marginBottom: 10,
   },
-  sectionTitle: {
+  summaryTitle: {
+    fontSize: 15,
+    color: '#3E3E3E',
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginBottom: 5
+  },
+  summaryValue: {
     fontSize: 18,
     fontWeight: 'bold',
-    marginBottom: 10,
-  }, 
-  activityChart: {
-    height: 200,
-    marginBottom: 10,
+    color: '#407BFF',
+    textAlign: 'center'
   },
-  activityLegend: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-  },
-  legendItem: {
-    flexDirection: 'row',
+  gaugeContainer: {
     alignItems: 'center',
+    marginVertical: 20,
+    backgroundColor: '#F8F8F8',
+    padding: 10,
+    borderRadius: 8,
+    // Sombra para iOS
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    // Elevação para Android
+    elevation: 5,
   },
-  legendCircle: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: '#007BFF',
-    marginRight: 5,
+  chartTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginBottom: 10,
+    color: '#3E3E3E',
   },
-  legendText: {
-    fontSize: 12,
-    color: '#666',
-
+  gaugeText: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#407BFF',
   },
-
+  percentageText: {
+    fontSize: 20,
+    fontWeight: '600',
+    textAlign: 'center',
+    marginTop: -20,
+  },
 });
 
-export default Dashboard;
+export default DashboardProjeto;

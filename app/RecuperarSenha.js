@@ -16,7 +16,7 @@ const RecuperarSenha = () => {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.navigate("Loginf")}>
+        <TouchableOpacity onPress={() => navigation.navigate("Login")}>
           <Text style={styles.backButton}>←</Text>
         </TouchableOpacity>
         <Text style={styles.title}>Futurize</Text>
