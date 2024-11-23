@@ -68,11 +68,11 @@ const verificarNotificacao = async (userId) => {
           trigger: { seconds: 1 },
         });
       } catch (error) {
-        console.error("Erro ao agendar a notificação:", error);
+        console.log("Erro ao agendar a notificação:", error);
       }
     }
   } catch (error) {
-    console.error("Erro ao verificar notificação:", error);
+    console.log("Erro ao verificar notificação:", error);
   }
 };
 
